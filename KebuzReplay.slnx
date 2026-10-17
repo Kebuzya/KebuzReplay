@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Kebuz.App/Kebuz.App.csproj" />
+  <Project Path="Kebuz.Gui/Kebuz.Gui.csproj" />
+  <Project Path="Kebuz.Recorder/Kebuz.Recorder.csproj" />
+</Solution>

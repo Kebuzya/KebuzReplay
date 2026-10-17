@@ -1,0 +1,245 @@
+<settings:SectionControl x:Class="Kebuz.Gui.Settings.SoundSection"
+                         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                         xmlns:l="clr-namespace:Kebuz.Gui.Localization"
+                         xmlns:settings="clr-namespace:Kebuz.Gui.Settings">
+
+    <settings:SectionControl.Resources>
+        <BooleanToVisibilityConverter x:Key="ShowWhenTrue" />
+
+        <DataTemplate x:Key="AudioAppTemplate">
+            <Grid Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="266" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="70" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <CheckBox Grid.Row="0" Grid.Column="0"
+                          Content="{Binding Executable}"
+                          IsChecked="{Binding Enabled}"
+                          Style="{StaticResource OptionCheck}" />
+                <Slider Grid.Row="0" Grid.Column="1"
+                        Minimum="0"
+                        Maximum="{Binding MaxLevel}"
+                        TickFrequency="5"
+                        IsSnapToTickEnabled="True"
+                        SmallChange="5"
+                        LargeChange="20"
+                        AutomationProperties.Name="{Binding Executable}"
+                        ValueChanged="OnSliderChanged"
+                        Value="{Binding Level}"
+                        Style="{StaticResource SecondLineSlider}" />
+                <TextBlock Grid.Row="0" Grid.Column="2"
+                           Text="{Binding LevelText}"
+                           HorizontalAlignment="Right"
+                           VerticalAlignment="Center" />
+                <Button Grid.Row="0" Grid.Column="3"
+                        Content="{l:T Settings.Common.Remove}"
+                        Margin="10,0,0,0"
+                        Padding="9,3"
+                        FontSize="{StaticResource SmallSize}"
+                        Tag="{Binding}"
+                        Click="OnRemoveApp"
+                        Style="{StaticResource BracketButton}" />
+                <settings:LevelBar Grid.Row="1" Grid.Column="1"
+                                   Margin="0,4,0,0"
+                                   DataContext="{Binding Meter}" />
+            </Grid>
+        </DataTemplate>
+    </settings:SectionControl.Resources>
+
+    <StackPanel>
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+            <RadioButton Content="{l:T Settings.Sound.WholeDesktop}"
+                         IsChecked="{Binding IsWholeDesktop}"
+                         Style="{StaticResource OptionRadio}" />
+            <RadioButton Content="{l:T Settings.Sound.ByApps}"
+                         IsEnabled="{Binding PerProcessSupported}"
+                         IsChecked="{Binding IsByApps}"
+                         Style="{StaticResource OptionRadio}" />
+        </StackPanel>
+
+        <Grid IsEnabled="{Binding IsWholeDesktop}" Style="{StaticResource NestedRow}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="166" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="70" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="{l:T Settings.Sound.Output}" Margin="0,0,0,10" Style="{StaticResource FieldLabel}" />
+            <ComboBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2"
+                      Margin="0,0,0,10"
+                      HorizontalAlignment="Left"
+                      MinWidth="320"
+                      DisplayMemberPath="Label"
+                      ItemsSource="{Binding Outputs}"
+                      SelectedItem="{Binding Output}"
+                      DropDownOpened="OnDevicesOpened"
+                      AutomationProperties.Name="{l:T Settings.Sound.Output}"
+                      Style="{StaticResource FilterCombo}" />
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="{l:T Settings.Sound.Volume}" Style="{StaticResource FieldLabel}" />
+            <Slider Grid.Row="1" Grid.Column="1"
+                    Minimum="0"
+                    Maximum="{Binding MaxLevel}"
+                    TickFrequency="5"
+                    IsSnapToTickEnabled="True"
+                    SmallChange="5"
+                    LargeChange="20"
+                    AutomationProperties.Name="{l:T Settings.Sound.DesktopVolumeName}"
+                    ValueChanged="OnSliderChanged"
+                    Value="{Binding DesktopLevel}"
+                    Style="{StaticResource SecondLineSlider}" />
+            <TextBlock Grid.Row="1" Grid.Column="2"
+                       Text="{Binding DesktopLevelText}"
+                       HorizontalAlignment="Right"
+                       Style="{StaticResource FieldLabel}" />
+            <settings:LevelBar Grid.Row="2" Grid.Column="1"
+                               Margin="0,4,0,0"
+                               DataContext="{Binding DesktopMeter}" />
+        </Grid>
+
+        <StackPanel IsEnabled="{Binding IsByApps}" Style="{StaticResource NestedGroup}">
+            <Grid Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="266" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="70" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <CheckBox Grid.Row="0" Grid.Column="0"
+                          Content="{l:T Settings.Sound.GameSound}"
+                          IsChecked="{Binding GameSound}"
+                          Style="{StaticResource OptionCheck}" />
+                <Slider Grid.Row="0" Grid.Column="1"
+                        Minimum="0"
+                        Maximum="{Binding MaxLevel}"
+                        TickFrequency="5"
+                        IsSnapToTickEnabled="True"
+                        SmallChange="5"
+                        LargeChange="20"
+                        AutomationProperties.Name="{l:T Settings.Sound.GameVolumeName}"
+                        ValueChanged="OnSliderChanged"
+                        Value="{Binding GameLevel}"
+                        Style="{StaticResource SecondLineSlider}" />
+                <TextBlock Grid.Row="0" Grid.Column="2"
+                           Text="{Binding GameLevelText}"
+                           HorizontalAlignment="Right"
+                           Style="{StaticResource FieldLabel}" />
+                <settings:LevelBar Grid.Row="1" Grid.Column="1"
+                                   Margin="0,4,0,0"
+                                   DataContext="{Binding GameMeter}" />
+            </Grid>
+            <ItemsControl ItemsSource="{Binding Apps}" ItemTemplate="{StaticResource AudioAppTemplate}" />
+            <Button Content="{l:T Settings.Sound.AddApp}"
+                    HorizontalAlignment="Left"
+                    Click="OnAddApp"
+                    AutomationProperties.Name="{l:T Settings.Sound.AddAppName}"
+                    Style="{StaticResource BracketButton}" />
+        </StackPanel>
+
+        <TextBlock Text="{Binding PerProcessNote}"
+                   Margin="24,12,0,0"
+                   TextWrapping="Wrap"
+                   FontSize="{StaticResource SmallSize}"
+                   Foreground="{StaticResource AccentBrush}"
+                   Visibility="{Binding PerProcessBlocked, Converter={StaticResource ShowWhenTrue}}" />
+
+        <TextBlock Text="{l:T Settings.Sound.MicHeading}" Margin="0,28,0,14" Style="{StaticResource SectionHeader}" />
+        <CheckBox Content="{l:T Settings.Sound.Microphone}"
+                  IsChecked="{Binding Microphone}"
+                  Margin="0,0,0,10"
+                  Style="{StaticResource OptionCheck}" />
+        <Grid IsEnabled="{Binding Microphone}" Style="{StaticResource NestedRow}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="166" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="70" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="{l:T Settings.Sound.Input}" Margin="0,0,0,10" Style="{StaticResource FieldLabel}" />
+            <ComboBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2"
+                      Margin="0,0,0,10"
+                      HorizontalAlignment="Left"
+                      MinWidth="320"
+                      DisplayMemberPath="Label"
+                      ItemsSource="{Binding Inputs}"
+                      SelectedItem="{Binding Input}"
+                      DropDownOpened="OnDevicesOpened"
+                      AutomationProperties.Name="{l:T Settings.Sound.Input}"
+                      Style="{StaticResource FilterCombo}" />
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="{l:T Settings.Sound.Volume}" Style="{StaticResource FieldLabel}" />
+            <Slider Grid.Row="1" Grid.Column="1"
+                    Minimum="0"
+                    Maximum="{Binding MaxLevel}"
+                    TickFrequency="5"
+                    IsSnapToTickEnabled="True"
+                    SmallChange="5"
+                    LargeChange="20"
+                    AutomationProperties.Name="{l:T Settings.Sound.MicVolumeName}"
+                    ValueChanged="OnSliderChanged"
+                    Value="{Binding MicrophoneLevel}"
+                    Style="{StaticResource SecondLineSlider}" />
+            <TextBlock Grid.Row="1" Grid.Column="2"
+                       Text="{Binding MicrophoneLevelText}"
+                       HorizontalAlignment="Right"
+                       Style="{StaticResource FieldLabel}" />
+            <settings:LevelBar Grid.Row="2" Grid.Column="1"
+                               Margin="0,4,0,0"
+                               DataContext="{Binding MicrophoneMeter}" />
+        </Grid>
+        <CheckBox Content="{l:T Settings.Sound.NoiseSuppression}"
+                  IsChecked="{Binding NoiseSuppression}"
+                  IsEnabled="{Binding Microphone}"
+                  Margin="24,10,0,0"
+                  HorizontalAlignment="Left"
+                  Style="{StaticResource OptionCheck}" />
+        <TextBlock Text="{Binding TroubleText}"
+                   Margin="24,12,0,0"
+                   TextWrapping="Wrap"
+                   FontSize="{StaticResource SmallSize}"
+                   Foreground="{StaticResource AccentBrush}"
+                   Visibility="{Binding HasTrouble, Converter={StaticResource ShowWhenTrue}}" />
+
+        <Grid Margin="0,20,0,0" Style="{StaticResource NestedRow}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="166" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="70" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="{l:T Settings.Sound.Mix}" Style="{StaticResource FieldLabel}" />
+            <settings:LevelBar Grid.Column="1"
+                               VerticalAlignment="Center"
+                               DataContext="{Binding MixMeter}" />
+            <TextBlock Grid.Column="2"
+                       Text="{l:T Settings.Sound.Limiter}"
+                       HorizontalAlignment="Right"
+                       FontSize="{StaticResource SmallSize}"
+                       Foreground="{StaticResource AccentBrush}"
+                       Visibility="{Binding MixMeter.Limiting, Converter={StaticResource ShowWhenTrue}}"
+                       Style="{StaticResource FieldLabel}" />
+        </Grid>
+        <TextBlock Text="{l:T Settings.Sound.Preview}"
+                   Margin="24,8,0,0"
+                   TextWrapping="Wrap"
+                   FontSize="{StaticResource SmallSize}"
+                   Foreground="{StaticResource MutedBrush}"
+                   Visibility="{Binding Previewing, Converter={StaticResource ShowWhenTrue}}" />
+    </StackPanel>
+</settings:SectionControl>

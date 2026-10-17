@@ -1,0 +1,610 @@
+<UserControl x:Class="Kebuz.Gui.Gallery.GalleryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:gallery="clr-namespace:Kebuz.Gui.Gallery"
+             xmlns:l="clr-namespace:Kebuz.Gui.Localization"
+             Background="{StaticResource AppBrush}">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="ShowWhenTrue" />
+
+        <DataTemplate x:Key="FilterLabel">
+            <TextBlock Text="{Binding Label}" />
+        </DataTemplate>
+
+        <Style x:Key="PreviewIdle" TargetType="Grid">
+            <Setter Property="Visibility" Value="Visible" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding HasPicture}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsBroken}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="IdleWhileRemoving" TargetType="StackPanel">
+            <Setter Property="Visibility" Value="Visible" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsRemoving}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <DataTemplate x:Key="TagTemplate">
+            <Border Style="{StaticResource TagChip}" BorderBrush="{Binding Color}">
+                <TextBlock Text="{Binding Label}"
+                           Foreground="{Binding Color}"
+                           Style="{StaticResource TagChipText}" />
+            </Border>
+        </DataTemplate>
+
+        <ItemsPanelTemplate x:Key="WrapPanelTemplate">
+            <WrapPanel />
+        </ItemsPanelTemplate>
+
+        <ItemsPanelTemplate x:Key="StackPanelTemplate">
+            <StackPanel />
+        </ItemsPanelTemplate>
+
+        <Style x:Key="RecordingDot" TargetType="Ellipse">
+            <Setter Property="Width" Value="7" />
+            <Setter Property="Height" Value="7" />
+            <Setter Property="Margin" Value="0,0,9,0" />
+            <Setter Property="Fill" Value="{StaticResource EdgeBrush}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding CanMark}" Value="True">
+                    <Setter Property="Fill" Value="{StaticResource AccentBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <DataTemplate x:Key="ClipTemplate">
+            <ToggleButton Style="{StaticResource ClipCard}"
+                          IsChecked="{Binding IsChosen, Mode=OneWay}"
+                          AutomationProperties.Name="{Binding AccessibleName}"
+                          Click="OnClipPicked">
+                <StackPanel Width="146">
+                    <Border Height="82" Style="{StaticResource ClipThumb}">
+                        <Grid ClipToBounds="True">
+                            <Rectangle Fill="{StaticResource HatchBrush}" />
+                            <Image Source="{Binding Shot}"
+                                   Stretch="UniformToFill"
+                                   RenderOptions.BitmapScalingMode="HighQuality" />
+                        </Grid>
+                    </Border>
+                    <Grid Margin="0,7,0,0">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                            <TextBlock Text="{Binding Duration}"
+                                       FontSize="{StaticResource SmallSize}"
+                                       Foreground="{StaticResource TextBrush}" />
+                            <TextBlock Text="&#x2702;"
+                                       Margin="6,0,0,0"
+                                       FontSize="{StaticResource SmallSize}"
+                                       Foreground="{StaticResource MutedBrush}"
+                                       ToolTip="{l:T Gallery.Cut}"
+                                       Visibility="{Binding IsCut, Converter={StaticResource ShowWhenTrue}}" />
+                        </StackPanel>
+                        <TextBlock Text="{Binding Time}"
+                                   HorizontalAlignment="Right"
+                                   FontSize="{StaticResource SmallSize}"
+                                   Foreground="{StaticResource MutedBrush}" />
+                    </Grid>
+                    <ItemsControl Margin="0,7,0,0"
+                                  ItemsSource="{Binding Tags}"
+                                  ItemTemplate="{StaticResource TagTemplate}"
+                                  ItemsPanel="{StaticResource WrapPanelTemplate}" />
+                </StackPanel>
+            </ToggleButton>
+        </DataTemplate>
+
+        <DataTemplate x:Key="ClipRowTemplate">
+            <ToggleButton Style="{StaticResource ClipRow}"
+                          IsChecked="{Binding IsChosen, Mode=OneWay}"
+                          AutomationProperties.Name="{Binding AccessibleName}"
+                          Click="OnClipPicked">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="56" />
+                        <ColumnDefinition Width="62" />
+                        <ColumnDefinition Width="86" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0"
+                               Text="{Binding Time}"
+                               VerticalAlignment="Center"
+                               FontSize="{StaticResource SmallSize}"
+                               Foreground="{StaticResource MutedBrush}" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Duration}"
+                                   FontSize="{StaticResource SmallSize}"
+                                   Foreground="{StaticResource TextBrush}" />
+                        <TextBlock Text="&#x2702;"
+                                   Margin="6,0,0,0"
+                                   FontSize="{StaticResource SmallSize}"
+                                   Foreground="{StaticResource MutedBrush}"
+                                   ToolTip="{l:T Gallery.Cut}"
+                                   Visibility="{Binding IsCut, Converter={StaticResource ShowWhenTrue}}" />
+                    </StackPanel>
+                    <TextBlock Grid.Column="2"
+                               Text="{Binding SizeText}"
+                               VerticalAlignment="Center"
+                               FontSize="{StaticResource SmallSize}"
+                               Foreground="{StaticResource MutedBrush}" />
+                    <ItemsControl Grid.Column="3"
+                                  VerticalAlignment="Center"
+                                  ItemsSource="{Binding Tags}"
+                                  ItemTemplate="{StaticResource TagTemplate}"
+                                  ItemsPanel="{StaticResource WrapPanelTemplate}" />
+                </Grid>
+            </ToggleButton>
+        </DataTemplate>
+
+        <Style x:Key="ClipsHost" TargetType="ItemsControl" BasedOn="{StaticResource {x:Type ItemsControl}}">
+            <Setter Property="ItemTemplate" Value="{StaticResource ClipTemplate}" />
+            <Setter Property="ItemsPanel" Value="{StaticResource WrapPanelTemplate}" />
+            <Style.Triggers>
+                <DataTrigger Value="True"
+                             Binding="{Binding DataContext.IsList, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                    <Setter Property="ItemTemplate" Value="{StaticResource ClipRowTemplate}" />
+                    <Setter Property="ItemsPanel" Value="{StaticResource StackPanelTemplate}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <DataTemplate x:Key="SessionTemplate">
+            <StackPanel Margin="0,0,0,14">
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,9">
+                    <TextBlock Text="{l:T Gallery.Session}"
+                               VerticalAlignment="Center"
+                               FontSize="{StaticResource SmallSize}"
+                               Foreground="{StaticResource MutedBrush}" />
+                    <TextBlock Text="&#160;·&#160;"
+                               VerticalAlignment="Center"
+                               Foreground="{StaticResource MutedBrush}" />
+                    <TextBlock Text="{Binding Title}"
+                               VerticalAlignment="Center"
+                               FontSize="{StaticResource SmallSize}"
+                               Foreground="{StaticResource TextBrush}" />
+                    <TextBlock Text="&#160;·&#160;"
+                               VerticalAlignment="Center"
+                               Foreground="{StaticResource MutedBrush}" />
+                    <TextBlock Text="{Binding ClipCountText}"
+                               VerticalAlignment="Center"
+                               FontSize="{StaticResource SmallSize}"
+                               Foreground="{StaticResource MutedBrush}" />
+                </StackPanel>
+                <ItemsControl ItemsSource="{Binding Clips}" Style="{StaticResource ClipsHost}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <Style x:Key="FoldButton" TargetType="Button">
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Frame"
+                                Background="Transparent"
+                                BorderBrush="Transparent"
+                                BorderThickness="1"
+                                Padding="2,1"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Frame" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="FoldGlyph" TargetType="TextBlock">
+            <Setter Property="Text" Value="&#9662;" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsCollapsed}" Value="True">
+                    <Setter Property="Text" Value="&#9656;" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <DataTemplate x:Key="GroupTemplate">
+            <StackPanel Margin="0,0,0,10">
+                <Button Style="{StaticResource FoldButton}"
+                        Click="OnGameFolded"
+                        ToolTip="{Binding FoldName}"
+                        AutomationProperties.Name="{Binding FoldName}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Margin="0,0,9,0"
+                                   Width="9"
+                                   VerticalAlignment="Center"
+                                   FontSize="{StaticResource SmallSize}"
+                                   Foreground="{StaticResource MutedBrush}"
+                                   Style="{StaticResource FoldGlyph}" />
+                        <TextBlock Text="{Binding Title}"
+                                   VerticalAlignment="Center"
+                                   FontSize="{StaticResource TitleSize}"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource TextBrush}" />
+                        <TextBlock Text="&#160;·&#160;"
+                                   VerticalAlignment="Center"
+                                   Foreground="{StaticResource MutedBrush}" />
+                        <TextBlock Text="{Binding When}"
+                                   VerticalAlignment="Center"
+                                   FontSize="{StaticResource SmallSize}"
+                                   Foreground="{StaticResource MutedBrush}" />
+                    </StackPanel>
+                </Button>
+                <Border Style="{StaticResource Divider}" Margin="0,0,0,14" />
+                <ItemsControl ItemsSource="{Binding Sessions}"
+                              ItemTemplate="{StaticResource SessionTemplate}"
+                              Margin="14,0,0,0">
+                    <ItemsControl.Style>
+                        <Style TargetType="ItemsControl" BasedOn="{StaticResource {x:Type ItemsControl}}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsCollapsed}" Value="True">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ItemsControl.Style>
+                </ItemsControl>
+            </StackPanel>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="18,14,18,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBox Grid.Column="0"
+                     Width="165"
+                     VerticalAlignment="Center"
+                     Tag="{l:T Gallery.SearchHint}"
+                     Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}"
+                     AutomationProperties.Name="{l:T Gallery.Search}"
+                     Style="{StaticResource SearchBox}" />
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="26,0,0,0">
+                <ComboBox MinWidth="86"
+                          MaxWidth="150"
+                          Margin="0,0,10,0"
+                          ItemsSource="{Binding GameFilters}"
+                          SelectedItem="{Binding GameFilter}"
+                          ItemTemplate="{StaticResource FilterLabel}"
+                          AutomationProperties.Name="{l:T Gallery.FilterGame}"
+                          Style="{StaticResource FilterCombo}" />
+                <ComboBox MinWidth="76"
+                          MaxWidth="150"
+                          Margin="0,0,10,0"
+                          ItemsSource="{Binding TagFilters}"
+                          SelectedItem="{Binding TagFilter}"
+                          ItemTemplate="{StaticResource FilterLabel}"
+                          AutomationProperties.Name="{l:T Gallery.FilterTag}"
+                          Style="{StaticResource FilterCombo}" />
+                <ComboBox Width="86"
+                          Margin="0,0,10,0"
+                          ItemsSource="{Binding DateFilters}"
+                          SelectedItem="{Binding DateFilter}"
+                          ItemTemplate="{StaticResource FilterLabel}"
+                          AutomationProperties.Name="{l:T Gallery.FilterDate}"
+                          Style="{StaticResource FilterCombo}" />
+                <ComboBox Width="152"
+                          ItemsSource="{Binding Orders}"
+                          SelectedItem="{Binding Order}"
+                          ItemTemplate="{StaticResource FilterLabel}"
+                          AutomationProperties.Name="{l:T Gallery.Sort}"
+                          Style="{StaticResource FilterCombo}" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                <RadioButton GroupName="ViewMode"
+                             IsChecked="{Binding IsGrid}"
+                             ToolTip="{l:T Gallery.Grid}"
+                             AutomationProperties.Name="{l:T Gallery.Grid}"
+                             Style="{StaticResource ViewModeButton}">
+                    <Path Data="M0,0 H4 V4 H0 Z M6,0 H10 V4 H6 Z M0,6 H4 V10 H0 Z M6,6 H10 V10 H6 Z"
+                          Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                </RadioButton>
+                <RadioButton GroupName="ViewMode"
+                             IsChecked="{Binding IsList}"
+                             ToolTip="{l:T Gallery.List}"
+                             AutomationProperties.Name="{l:T Gallery.List}"
+                             Style="{StaticResource ViewModeButton}">
+                    <Path Data="M0,1 H11 M0,5 H11 M0,9 H11"
+                          StrokeThickness="1"
+                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                </RadioButton>
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="340" />
+            </Grid.ColumnDefinitions>
+
+            <ScrollViewer Grid.Column="0"
+                          Margin="18,0,10,0"
+                          Style="{StaticResource ThinScrollViewer}">
+                <ItemsControl ItemsSource="{Binding Groups}"
+                              ItemTemplate="{StaticResource GroupTemplate}"
+                              Margin="0,0,8,0" />
+            </ScrollViewer>
+
+            <Border Grid.Column="1" Width="1" Background="{StaticResource EdgeBrush}" />
+
+            <Grid Grid.Column="2" Margin="18,0,18,16">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <StackPanel x:Name="PlayerPanel" Grid.Row="0">
+                    <Border Height="196"
+                            Background="{StaticResource RaisedBrush}"
+                            BorderBrush="{StaticResource EdgeBrush}"
+                            BorderThickness="1"
+                            MouseWheel="OnVolumeWheel">
+                        <Grid ClipToBounds="True">
+                            <Grid Style="{StaticResource PreviewIdle}">
+                                <Rectangle Fill="{StaticResource HatchBrush}" />
+                                <TextBlock Text="{l:T Gallery.Preview}"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           FontSize="{StaticResource SmallSize}"
+                                           Foreground="{StaticResource MutedBrush}" />
+                            </Grid>
+                            <Image Source="{Binding Frame}"
+                                   Stretch="Uniform"
+                                   Visibility="{Binding HasPicture, Converter={StaticResource ShowWhenTrue}}" />
+                            <TextBlock Text="{Binding FailureText}"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       TextWrapping="Wrap"
+                                       TextAlignment="Center"
+                                       Margin="14,0"
+                                       FontSize="{StaticResource SmallSize}"
+                                       Foreground="{StaticResource AccentBrush}"
+                                       Visibility="{Binding IsBroken, Converter={StaticResource ShowWhenTrue}}" />
+                        </Grid>
+                    </Border>
+
+                    <Slider x:Name="Scrub"
+                            Margin="0,14,0,0"
+                            Minimum="0"
+                            Maximum="{Binding TotalSeconds}"
+                            Value="{Binding PlayedSeconds}"
+                            IsEnabled="{Binding HasClip}"
+                            ToolTip="{l:T Gallery.Seek}"
+                            AutomationProperties.Name="{l:T Gallery.Seek}"
+                            Thumb.DragStarted="OnScrubStarted"
+                            Thumb.DragCompleted="OnScrubDone"
+                            Style="{StaticResource LineSlider}" />
+
+                    <Grid Margin="0,8,0,0">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                            <Button Style="{StaticResource TransportButton}"
+                                    IsEnabled="{Binding CanStepBack}"
+                                    ToolTip="{l:T Gallery.PrevClip}"
+                                    AutomationProperties.Name="{l:T Gallery.PrevClip}"
+                                    Click="OnStepBack">
+                                <Path Data="{StaticResource PrevGeometry}" Style="{StaticResource TransportGlyph}" />
+                            </Button>
+                            <Button Style="{StaticResource TransportButton}"
+                                    IsEnabled="{Binding HasClip}"
+                                    ToolTip="{Binding PlayName}"
+                                    AutomationProperties.Name="{Binding PlayName}"
+                                    Click="OnPlayToggled">
+                                <Path Style="{StaticResource PlayGlyph}" />
+                            </Button>
+                            <Button Style="{StaticResource TransportButton}"
+                                    IsEnabled="{Binding CanStepNext}"
+                                    ToolTip="{l:T Gallery.NextClip}"
+                                    AutomationProperties.Name="{l:T Gallery.NextClip}"
+                                    Click="OnStepNext">
+                                <Path Data="{StaticResource NextGeometry}" Style="{StaticResource TransportGlyph}" />
+                            </Button>
+                            <Button Style="{StaticResource TransportButton}"
+                                    Margin="6,0,0,0"
+                                    IsEnabled="{Binding HasClip}"
+                                    ToolTip="{l:T Gallery.FullScreen}"
+                                    AutomationProperties.Name="{l:T Gallery.FullScreen}"
+                                    Click="OnFullScreen">
+                                <Path Style="{StaticResource FullScreenGlyph}" />
+                            </Button>
+                        </StackPanel>
+                        <TextBlock HorizontalAlignment="Right"
+                                   VerticalAlignment="Center"
+                                   Text="{Binding PositionText}"
+                                   Style="{StaticResource SmallMutedText}" />
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0" MouseWheel="OnVolumeWheel">
+                        <Path Margin="0,0,8,0"
+                              VerticalAlignment="Center"
+                              Data="{StaticResource VolumeGeometry}"
+                              Fill="{StaticResource MutedBrush}" />
+                        <Slider x:Name="Sound"
+                                Width="104"
+                                VerticalAlignment="Center"
+                                Minimum="0"
+                                Maximum="1"
+                                Value="{Binding Volume}"
+                                ToolTip="{l:T Gallery.Volume}"
+                                AutomationProperties.Name="{l:T Gallery.Volume}"
+                                Style="{StaticResource LineSlider}" />
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Grid.Row="1" Margin="0,20,0,0" DataContext="{Binding Selected}">
+                    <TextBlock Text="{Binding HeadlineText}" Style="{StaticResource MutedText}" />
+                    <TextBlock Text="{Binding DetailsText}" Margin="0,6,0,0" Style="{StaticResource MutedText}" />
+                </StackPanel>
+
+                <StackPanel x:Name="TagSection" Grid.Row="2" Margin="0,16,0,0" DataContext="{Binding Selected}">
+                    <Grid>
+                        <TextBlock Text="{l:T Tags.Section}"
+                                   VerticalAlignment="Center"
+                                   Style="{StaticResource SmallMutedText}" />
+                        <Button x:Name="TagButton"
+                                Content="{l:T Tags.Button}"
+                                HorizontalAlignment="Right"
+                                Style="{StaticResource SmallBracketButton}"
+                                Click="OnTagsOpen"
+                                AutomationProperties.Name="{l:T Tags.ChosenName}"
+                                IsEnabled="{Binding DataContext.CanTag, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                    </Grid>
+
+                    <ItemsControl Margin="0,10,0,0"
+                                  ItemsSource="{Binding Tags}"
+                                  ItemTemplate="{StaticResource TagTemplate}"
+                                  ItemsPanel="{StaticResource WrapPanelTemplate}" />
+
+                    <TextBlock Margin="0,8,0,0"
+                               TextWrapping="Wrap"
+                               Text="{Binding DataContext.ChoiceText, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                               Style="{StaticResource SmallMutedText}">
+                        <TextBlock.Visibility>
+                            <Binding Path="DataContext.ManyChosen"
+                                     RelativeSource="{RelativeSource AncestorType=UserControl}"
+                                     Converter="{StaticResource ShowWhenTrue}" />
+                        </TextBlock.Visibility>
+                    </TextBlock>
+                </StackPanel>
+
+                <StackPanel Grid.Row="4">
+                    <TextBlock Margin="0,0,0,8"
+                               TextWrapping="Wrap"
+                               Text="{Binding Trouble}"
+                               FontSize="{StaticResource SmallSize}"
+                               Foreground="{StaticResource AccentBrush}"
+                               Visibility="{Binding HasTrouble, Converter={StaticResource ShowWhenTrue}}" />
+
+                    <StackPanel Visibility="{Binding IsRemoving, Converter={StaticResource ShowWhenTrue}}">
+                        <TextBlock Text="{Binding RemoveQuestion}"
+                                   TextWrapping="Wrap"
+                                   Style="{StaticResource SmallMutedText}" />
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0" HorizontalAlignment="Right">
+                            <Button Content="{l:T Gallery.Cancel}"
+                                    Margin="0,0,10,0"
+                                    Style="{StaticResource BracketButton}"
+                                    AutomationProperties.Name="{l:T Gallery.CancelRemove}"
+                                    Click="OnRemoveCancel" />
+                            <Button Content="{l:T Gallery.ToTrash}"
+                                    Style="{StaticResource AccentBracketButton}"
+                                    AutomationProperties.Name="{l:T Gallery.ToTrashName}"
+                                    Click="OnRemove" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                Style="{StaticResource IdleWhileRemoving}">
+                        <Button Content="{l:T Gallery.OpenFolder}"
+                                Margin="0,0,10,0"
+                                Style="{StaticResource BracketButton}"
+                                IsEnabled="{Binding CanReveal}"
+                                AutomationProperties.Name="{l:T Gallery.OpenFolderName}"
+                                Click="OnRevealFolder" />
+                        <Button Content="{l:T Gallery.Delete}"
+                                Style="{StaticResource AccentBracketButton}"
+                                IsEnabled="{Binding CanRemove}"
+                                AutomationProperties.Name="{l:T Gallery.DeleteName}"
+                                Click="OnRemoveAsked" />
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+
+            <Popup x:Name="TagPopup"
+                   Grid.Column="2"
+                   StaysOpen="False"
+                   Placement="Bottom"
+                   PlacementTarget="{Binding ElementName=TagSection}"
+                   Opened="OnTagsOpened">
+                <gallery:TagPopover x:Name="TagForm" Dismissed="OnTagsDismissed" />
+            </Popup>
+        </Grid>
+
+        <Border Grid.Row="2"
+                Height="27"
+                Background="{StaticResource PanelBrush}"
+                BorderBrush="{StaticResource EdgeBrush}"
+                BorderThickness="0,1,0,0">
+            <Grid Margin="16,0">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Ellipse Style="{StaticResource RecordingDot}" VerticalAlignment="Center" />
+                    <Border Height="19"
+                            Margin="0,0,8,0"
+                            VerticalAlignment="Center"
+                            BorderBrush="{StaticResource EdgeBrush}"
+                            BorderThickness="1"
+                            Visibility="{Binding HasRecordingCard, Converter={StaticResource ShowWhenTrue}}"
+                            AutomationProperties.AutomationId="RecordingShot"
+                            AutomationProperties.Name="{Binding RecordingCard.Window}">
+                        <Border.ToolTip>
+                            <StackPanel>
+                                <Image Source="{Binding RecordingCard.Shot}"
+                                       Width="256"
+                                       RenderOptions.BitmapScalingMode="HighQuality" />
+                                <TextBlock Margin="0,6,0,0" Text="{Binding RecordingCard.Window}" />
+                            </StackPanel>
+                        </Border.ToolTip>
+                        <Image Source="{Binding RecordingCard.Shot}"
+                               Stretch="Uniform"
+                               RenderOptions.BitmapScalingMode="HighQuality" />
+                    </Border>
+                    <TextBlock Text="{Binding RecordingText}"
+                               VerticalAlignment="Center"
+                               AutomationProperties.AutomationId="RecordingLine"
+                               Style="{StaticResource SmallMutedText}" />
+                    <Button Content="{l:T Gallery.SaveReplay}"
+                            Margin="14,0,0,0"
+                            Padding="9,1"
+                            VerticalAlignment="Center"
+                            FontSize="{StaticResource SmallSize}"
+                            IsEnabled="{Binding CanMark}"
+                            Click="OnMarkClip"
+                            AutomationProperties.Name="{l:T Gallery.SaveReplay}"
+                            Style="{StaticResource BracketButton}" />
+                    <Button Content="{Binding ApplyText}"
+                            Margin="8,0,0,0"
+                            Padding="9,1"
+                            VerticalAlignment="Center"
+                            FontSize="{StaticResource SmallSize}"
+                            Visibility="{Binding CanApplyNow, Converter={StaticResource ShowWhenTrue}}"
+                            Click="OnApplySettings"
+                            ToolTip="{Binding ApplyHint}"
+                            AutomationProperties.Name="{Binding ApplyText}"
+                            Style="{StaticResource BracketButton}" />
+                </StackPanel>
+                <TextBlock Text="{Binding StorageText}"
+                           HorizontalAlignment="Right"
+                           VerticalAlignment="Center"
+                           Style="{StaticResource SmallMutedText}" />
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

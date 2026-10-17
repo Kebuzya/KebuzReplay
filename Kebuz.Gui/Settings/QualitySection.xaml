@@ -1,0 +1,183 @@
+<settings:SectionControl x:Class="Kebuz.Gui.Settings.QualitySection"
+                         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                         xmlns:l="clr-namespace:Kebuz.Gui.Localization"
+                         xmlns:settings="clr-namespace:Kebuz.Gui.Settings">
+
+    <settings:SectionControl.Resources>
+        <BooleanToVisibilityConverter x:Key="ShowWhenTrue" />
+    </settings:SectionControl.Resources>
+
+    <StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <RadioButton Content="{l:T Settings.Quality.Compact}"
+                         IsChecked="{Binding IsCompact}"
+                         Style="{StaticResource OptionRadio}" />
+            <RadioButton Content="{l:T Settings.Quality.Balanced}"
+                         IsChecked="{Binding IsBalanced}"
+                         Style="{StaticResource OptionRadio}" />
+            <RadioButton Content="{l:T Settings.Quality.Max}"
+                         IsChecked="{Binding IsMax}"
+                         Style="{StaticResource OptionRadio}" />
+            <RadioButton Content="{l:T Settings.Quality.Custom}"
+                         IsChecked="{Binding IsCustom}"
+                         Style="{StaticResource OptionRadio}" />
+        </StackPanel>
+
+        <StackPanel Margin="0,12,0,0" IsEnabled="{Binding IsCustom}" Style="{StaticResource NestedGroup}">
+            <Grid Margin="0,0,0,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="166" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="80" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="{l:T Settings.Quality.Height}" Style="{StaticResource FieldLabel}" />
+                <Slider Grid.Column="1"
+                        Minimum="{Binding MinHeight}"
+                        Maximum="{Binding MaxHeight}"
+                        TickFrequency="{Binding HeightStep}"
+                        IsSnapToTickEnabled="True"
+                        SmallChange="{Binding HeightStep}"
+                        LargeChange="180"
+                        AutomationProperties.Name="{l:T Settings.Quality.Height}"
+                        AutomationProperties.AutomationId="CustomHeight"
+                        ValueChanged="OnSliderChanged"
+                        Value="{Binding CustomHeight}"
+                        Style="{StaticResource SecondLineSlider}" />
+                <TextBlock Grid.Column="2"
+                           Text="{Binding CustomHeightText}"
+                           HorizontalAlignment="Right"
+                           Style="{StaticResource FieldLabel}" />
+            </Grid>
+            <Grid Margin="0,0,0,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="166" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="80" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="{l:T Settings.Quality.FrameRate}" Style="{StaticResource FieldLabel}" />
+                <Slider Grid.Column="1"
+                        Minimum="{Binding MinFrameRate}"
+                        Maximum="{Binding MaxFrameRate}"
+                        TickFrequency="6"
+                        IsSnapToTickEnabled="True"
+                        SmallChange="6"
+                        LargeChange="12"
+                        AutomationProperties.Name="{l:T Settings.Quality.FrameRate}"
+                        AutomationProperties.AutomationId="CustomFrameRate"
+                        ValueChanged="OnSliderChanged"
+                        Value="{Binding CustomFrameRate}"
+                        Style="{StaticResource SecondLineSlider}" />
+                <TextBlock Grid.Column="2"
+                           Text="{Binding CustomFrameRateText}"
+                           HorizontalAlignment="Right"
+                           Style="{StaticResource FieldLabel}" />
+            </Grid>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="166" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="80" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="{l:T Settings.Quality.Bitrate}" Style="{StaticResource FieldLabel}" />
+                <Slider Grid.Column="1"
+                        Minimum="{Binding MinMbps}"
+                        Maximum="{Binding MaxMbps}"
+                        TickFrequency="0.5"
+                        IsSnapToTickEnabled="True"
+                        SmallChange="0.5"
+                        LargeChange="2"
+                        AutomationProperties.Name="{l:T Settings.Quality.Bitrate}"
+                        AutomationProperties.AutomationId="CustomBitrate"
+                        ValueChanged="OnSliderChanged"
+                        Value="{Binding CustomMbps}"
+                        Style="{StaticResource SecondLineSlider}" />
+                <TextBlock Grid.Column="2"
+                           Text="{Binding CustomMbpsText}"
+                           HorizontalAlignment="Right"
+                           Style="{StaticResource FieldLabel}" />
+            </Grid>
+        </StackPanel>
+
+        <TextBlock Text="{l:T Settings.Quality.CaptureHeading}" Margin="0,28,0,14" Style="{StaticResource SectionHeader}" />
+        <StackPanel Orientation="Horizontal">
+            <RadioButton Content="{l:T Settings.Quality.CaptureStandard}"
+                         IsChecked="{Binding IsStandardCapture}"
+                         Style="{StaticResource OptionRadio}" />
+            <RadioButton Content="{l:T Settings.Quality.CaptureBorderless}"
+                         IsChecked="{Binding IsBorderless}"
+                         Style="{StaticResource OptionRadio}" />
+        </StackPanel>
+
+        <TextBlock Text="{l:T Settings.Quality.OutputHeading}" Margin="0,28,0,14" Style="{StaticResource SectionHeader}" />
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="190" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="{l:T Settings.Quality.Resolution}" Margin="0,0,0,8" Style="{StaticResource FieldLabel}" />
+            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ResolutionText}" Margin="0,0,0,8" Style="{StaticResource MutedText}" />
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="{l:T Settings.Quality.OutputFrameRate}" Margin="0,0,0,8" Style="{StaticResource FieldLabel}" />
+            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding FrameRateText}" Margin="0,0,0,8" Style="{StaticResource MutedText}" />
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="{l:T Settings.Quality.Codec}" Margin="0,0,0,8" Style="{StaticResource FieldLabel}" />
+            <TextBlock Grid.Row="2" Grid.Column="1" Text="H.264" Margin="0,0,0,8" Style="{StaticResource MutedText}" />
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="{l:T Settings.Quality.Encoder}" Style="{StaticResource FieldLabel}" />
+            <TextBlock Grid.Row="3" Grid.Column="1" Text="{l:T Settings.Quality.EncoderValue}" Style="{StaticResource MutedText}" />
+        </Grid>
+
+        <StackPanel Orientation="Horizontal" Margin="0,18,0,0">
+            <Button x:Name="SampleButton"
+                    Content="{l:T Settings.Sample.Show}"
+                    Click="OnSample"
+                    IsEnabled="{Binding Sample.CanStart, FallbackValue=False}"
+                    AutomationProperties.AutomationId="SampleShow"
+                    Style="{StaticResource BracketButton}" />
+            <TextBlock Text="{l:T Settings.Sample.Blocked}"
+                       Margin="12,0,0,0"
+                       VerticalAlignment="Center"
+                       TextWrapping="Wrap"
+                       MaxWidth="420"
+                       AutomationProperties.AutomationId="SampleBlocked"
+                       Visibility="{Binding Sample.IsBlocked, Converter={StaticResource ShowWhenTrue}, FallbackValue=Collapsed}"
+                       Style="{StaticResource SmallMutedText}" />
+        </StackPanel>
+
+        <Popup IsOpen="{Binding Sample.IsOpen, Mode=TwoWay, FallbackValue=False}"
+               StaysOpen="False"
+               PlacementTarget="{Binding ElementName=SampleButton}"
+               Placement="Bottom"
+               VerticalOffset="6">
+            <Border Width="440" Style="{StaticResource Popover}">
+                <StackPanel>
+                    <Grid Height="248" Background="{StaticResource RaisedBrush}">
+                        <TextBlock Text="{Binding Sample.StateText}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   Margin="14,0"
+                                   Style="{StaticResource SmallMutedText}" />
+                        <Image Source="{Binding Sample.Frame}"
+                               Stretch="Uniform"
+                               Visibility="{Binding Sample.HasPicture, Converter={StaticResource ShowWhenTrue}}" />
+                    </Grid>
+                    <TextBlock Text="{Binding Sample.InfoText}"
+                               Margin="0,10,0,0"
+                               TextWrapping="Wrap"
+                               Style="{StaticResource SmallMutedText}" />
+                    <Button Content="{l:T Settings.Sample.Close}"
+                            Click="OnSampleClose"
+                            HorizontalAlignment="Right"
+                            Margin="0,10,0,0"
+                            Style="{StaticResource SmallBracketButton}" />
+                </StackPanel>
+            </Border>
+        </Popup>
+    </StackPanel>
+</settings:SectionControl>

@@ -1,0 +1,128 @@
+<UserControl x:Class="Kebuz.Gui.Gallery.TagPopover"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:Kebuz.Gui.Localization"
+             Width="300">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="ShowWhenTrue" />
+
+        <Style x:Key="EmptyNote" TargetType="TextBlock" BasedOn="{StaticResource SmallMutedText}">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding TagChoices.Count}" Value="0">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <DataTemplate x:Key="TagChoiceTemplate">
+            <StackPanel Margin="0,0,0,3">
+                <Grid>
+                    <CheckBox Content="{Binding Label}"
+                              Foreground="{Binding Color}"
+                              IsThreeState="True"
+                              IsChecked="{Binding State, Mode=OneWay}"
+                              Style="{StaticResource OptionCheck}"
+                              AutomationProperties.Name="{Binding Label}"
+                              Click="OnTagToggled" />
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="{l:T Tags.Edit}"
+                                Margin="0,0,6,0"
+                                Style="{StaticResource SmallBracketButton}"
+                                AutomationProperties.Name="{Binding EditName}"
+                                Click="OnTagEdit" />
+                        <Button Content="x"
+                                Style="{StaticResource SmallBracketButton}"
+                                AutomationProperties.Name="{Binding RemoveName}"
+                                Click="OnTagRemoveAsked" />
+                    </StackPanel>
+                </Grid>
+                <StackPanel Margin="0,6,0,8"
+                            Visibility="{Binding IsConfirming, Converter={StaticResource ShowWhenTrue}}">
+                    <TextBlock Text="{Binding Warning}"
+                               TextWrapping="Wrap"
+                               Style="{StaticResource SmallMutedText}" />
+                    <StackPanel Orientation="Horizontal" Margin="0,7,0,0" HorizontalAlignment="Right">
+                        <Button Content="{l:T Gallery.Cancel}"
+                                Margin="0,0,6,0"
+                                Style="{StaticResource SmallBracketButton}"
+                                Click="OnTagRemoveCancel" />
+                        <Button Content="{l:T Gallery.Delete}"
+                                Style="{StaticResource SmallAccentBracketButton}"
+                                Click="OnTagRemove" />
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="IconPickTemplate">
+            <RadioButton GroupName="TagIcon"
+                         Content="{Binding Value}"
+                         IsChecked="{Binding IsPicked}"
+                         Style="{StaticResource IconPick}"
+                         AutomationProperties.Name="{Binding Value}" />
+        </DataTemplate>
+
+        <DataTemplate x:Key="SwatchPickTemplate">
+            <RadioButton GroupName="TagColor"
+                         Content="{Binding Value}"
+                         IsChecked="{Binding IsPicked}"
+                         Style="{StaticResource SwatchPick}"
+                         AutomationProperties.Name="{Binding Value}" />
+        </DataTemplate>
+
+        <ItemsPanelTemplate x:Key="WrapPanelTemplate">
+            <WrapPanel />
+        </ItemsPanelTemplate>
+    </UserControl.Resources>
+
+    <Border Style="{StaticResource Popover}" KeyDown="OnKey">
+        <StackPanel>
+            <TextBlock Text="{l:T Tags.Heading}" Style="{StaticResource SectionHeader}" />
+
+            <TextBlock Text="{l:T Tags.Empty}"
+                       Margin="0,0,0,10"
+                       Style="{StaticResource EmptyNote}" />
+
+            <ItemsControl ItemsSource="{Binding TagChoices}"
+                          ItemTemplate="{StaticResource TagChoiceTemplate}" />
+
+            <Border Style="{StaticResource Divider}" Margin="0,12,0,14" />
+
+            <TextBlock Text="{Binding FormTitle}" Style="{StaticResource SectionHeader}" />
+
+            <TextBox x:Name="TagName"
+                     Tag="{l:T Tags.NameHint}"
+                     MaxLength="24"
+                     Text="{Binding TagDraft, UpdateSourceTrigger=PropertyChanged}"
+                     Style="{StaticResource SearchBox}"
+                     AutomationProperties.Name="{l:T Tags.Name}" />
+
+            <ItemsControl Margin="0,12,0,0"
+                          ItemsSource="{Binding Icons}"
+                          ItemTemplate="{StaticResource IconPickTemplate}"
+                          ItemsPanel="{StaticResource WrapPanelTemplate}" />
+
+            <ItemsControl Margin="0,8,0,0"
+                          ItemsSource="{Binding Colors}"
+                          ItemTemplate="{StaticResource SwatchPickTemplate}"
+                          ItemsPanel="{StaticResource WrapPanelTemplate}" />
+
+            <StackPanel Orientation="Horizontal"
+                        Margin="0,14,0,0"
+                        HorizontalAlignment="Right">
+                <Button Content="{l:T Gallery.Cancel}"
+                        Margin="0,0,6,0"
+                        Style="{StaticResource SmallBracketButton}"
+                        AutomationProperties.Name="{l:T Tags.CancelEdit}"
+                        Visibility="{Binding IsEditing, Converter={StaticResource ShowWhenTrue}}"
+                        Click="OnTagEditCancel" />
+                <Button Content="{Binding CommitText}"
+                        IsEnabled="{Binding CanCommit}"
+                        Style="{StaticResource SmallBracketButton}"
+                        Click="OnTagCommit" />
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</UserControl>

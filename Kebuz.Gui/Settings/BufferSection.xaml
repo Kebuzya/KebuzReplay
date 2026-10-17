@@ -1,0 +1,77 @@
+<settings:SectionControl x:Class="Kebuz.Gui.Settings.BufferSection"
+                         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                         xmlns:l="clr-namespace:Kebuz.Gui.Localization"
+                         xmlns:settings="clr-namespace:Kebuz.Gui.Settings">
+
+    <StackPanel>
+        <Grid Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="190" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="70" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="{l:T Settings.Buffer.Length}" Style="{StaticResource FieldLabel}" />
+            <Slider Grid.Column="1"
+                    Minimum="15"
+                    Maximum="300"
+                    TickFrequency="15"
+                    IsSnapToTickEnabled="True"
+                    SmallChange="15"
+                    LargeChange="30"
+                    AutomationProperties.Name="{l:T Settings.Buffer.Length}"
+                    ValueChanged="OnSliderChanged"
+                    Value="{Binding BufferSeconds}"
+                    Style="{StaticResource SecondLineSlider}" />
+            <TextBlock Grid.Column="2"
+                       Text="{Binding BufferText}"
+                       HorizontalAlignment="Right"
+                       Style="{StaticResource FieldLabel}" />
+        </Grid>
+        <Grid Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="190" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="70" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="{l:T Settings.Buffer.Quiet}" Style="{StaticResource FieldLabel}" />
+            <Slider Grid.Column="1"
+                    Minimum="3"
+                    Maximum="30"
+                    TickFrequency="1"
+                    IsSnapToTickEnabled="True"
+                    AutomationProperties.Name="{l:T Settings.Buffer.Quiet}"
+                    ValueChanged="OnSliderChanged"
+                    Value="{Binding MergeSeconds}"
+                    Style="{StaticResource SecondLineSlider}" />
+            <TextBlock Grid.Column="2"
+                       Text="{Binding MergeText}"
+                       HorizontalAlignment="Right"
+                       Style="{StaticResource FieldLabel}" />
+        </Grid>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="190" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="70" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="{l:T Settings.Buffer.MergeMax}" Style="{StaticResource FieldLabel}" />
+            <Slider Grid.Column="1"
+                    Minimum="10"
+                    Maximum="60"
+                    TickFrequency="1"
+                    IsSnapToTickEnabled="True"
+                    AutomationProperties.Name="{l:T Settings.Buffer.MergeMax}"
+                    ValueChanged="OnSliderChanged"
+                    Value="{Binding MergeMaxSeconds}"
+                    Style="{StaticResource SecondLineSlider}" />
+            <TextBlock Grid.Column="2"
+                       Text="{Binding MergeMaxText}"
+                       HorizontalAlignment="Right"
+                       Style="{StaticResource FieldLabel}" />
+        </Grid>
+        <TextBlock Text="{Binding MemoryText}"
+                   AutomationProperties.AutomationId="MemoryNote"
+                   Style="{StaticResource Note}" />
+    </StackPanel>
+</settings:SectionControl>

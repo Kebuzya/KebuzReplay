@@ -1,0 +1,36 @@
+<UserControl x:Class="Kebuz.Gui.Settings.HotkeySection"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:Kebuz.Gui.Localization">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="ShowWhenTrue" />
+    </UserControl.Resources>
+
+    <StackPanel>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="190" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="{l:T Settings.Hotkey.Save}" Style="{StaticResource FieldLabel}" />
+            <TextBlock Grid.Column="1"
+                       Text="{Binding Text}"
+                       VerticalAlignment="Center"
+                       AutomationProperties.AutomationId="HotkeyValue"
+                       Foreground="{StaticResource AccentBrush}" />
+            <Button Grid.Column="2"
+                    Content="{Binding Action}"
+                    Click="OnEdit"
+                    AutomationProperties.AutomationId="HotkeyEdit"
+                    AutomationProperties.Name="{Binding ActionName}"
+                    Style="{StaticResource BracketButton}" />
+        </Grid>
+        <TextBlock Text="{Binding Complaint}"
+                   AutomationProperties.AutomationId="HotkeyComplaint"
+                   Style="{StaticResource Complaint}"
+                   Visibility="{Binding HasComplaint, Converter={StaticResource ShowWhenTrue}}" />
+        <TextBlock Text="{Binding Hint}" Style="{StaticResource Note}" />
+    </StackPanel>
+</UserControl>

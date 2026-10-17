@@ -1,0 +1,34 @@
+<UserControl x:Class="Kebuz.Gui.Shell.UpdateBar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:Kebuz.Gui.Localization">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="ShowWhenTrue" />
+    </UserControl.Resources>
+
+    <StackPanel Orientation="Horizontal"
+                VerticalAlignment="Center"
+                AutomationProperties.AutomationId="UpdateBar"
+                Visibility="{Binding IsShown, Converter={StaticResource ShowWhenTrue}}">
+        <TextBlock Text="{Binding Text}"
+                   VerticalAlignment="Center"
+                   Margin="0,0,10,0"
+                   Style="{StaticResource SmallMutedText}" />
+        <Button Content="{l:T Update.Open}"
+                Click="OnOpen"
+                Margin="0,0,4,0"
+                AutomationProperties.AutomationId="UpdateOpen"
+                AutomationProperties.Name="{l:T Update.OpenName}"
+                WindowChrome.IsHitTestVisibleInChrome="True"
+                Style="{StaticResource SmallBracketButton}" />
+        <Button Content="×"
+                Click="OnDismiss"
+                Margin="0,0,10,0"
+                ToolTip="{l:T Update.Dismiss}"
+                AutomationProperties.AutomationId="UpdateDismiss"
+                AutomationProperties.Name="{l:T Update.Dismiss}"
+                WindowChrome.IsHitTestVisibleInChrome="True"
+                Style="{StaticResource SmallBracketButton}" />
+    </StackPanel>
+</UserControl>

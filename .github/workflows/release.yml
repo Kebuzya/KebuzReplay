@@ -1,0 +1,56 @@
+name: Release
+
+on:
+  push:
+    tags: [ "v*" ]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Check version matches tag
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}".TrimStart("v")
+          $props = ([xml](Get-Content Directory.Build.props)).Project.PropertyGroup |
+            ForEach-Object { $_.Version } | Where-Object { $_ } | Select-Object -First 1
+          if ($props -ne $tag) {
+            Write-Error "Version mismatch: tag=$tag props=$props"
+            exit 1
+          }
+          "VER=$tag" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Build release assets
+        shell: pwsh
+        run: ./build/release.ps1 -Iscc "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+
+      - name: Read release notes from the tag
+        shell: pwsh
+        run: |
+          git fetch --force --tags origin
+          git tag -l --format='%(contents)' "${{ github.ref_name }}" | Out-File -FilePath release-notes.md -Encoding utf8
+
+      - name: Create draft release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: KebuzReplay ${{ env.VER }}
+          body_path: release-notes.md
+          draft: true
+          fail_on_unmatched_files: true
+          files: |
+            artifacts/KebuzReplay-Setup-win-x64.exe
+            artifacts/KebuzReplay-win-x64-portable.zip
+            artifacts/KebuzReplay-win-x64-lite.zip
+            artifacts/checksums.txt

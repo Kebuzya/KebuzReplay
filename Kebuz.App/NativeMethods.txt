@@ -1,0 +1,11 @@
+CreateJobObject
+SetInformationJobObject
+AssignProcessToJobObject
+JOBOBJECT_EXTENDED_LIMIT_INFORMATION
+JOBOBJECTINFOCLASS
+JOB_OBJECT_LIMIT
+AttachConsole
+GetStdHandle
+ATTACH_PARENT_PROCESS
+AllowSetForegroundWindow
+ASFW_ANY

@@ -1,0 +1,387 @@
+<Window x:Class="Kebuz.Gui.Player.FullScreenWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:gallery="clr-namespace:Kebuz.Gui.Gallery"
+        xmlns:l="clr-namespace:Kebuz.Gui.Localization"
+        Title="{l:T Player.Title}"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        FontFamily="{StaticResource MonoFont}"
+        FontSize="{StaticResource TextSize}"
+        Foreground="{StaticResource TextBrush}"
+        Background="Black">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="ShowWhenTrue" />
+
+        <ItemsPanelTemplate x:Key="WrapPanelTemplate">
+            <WrapPanel />
+        </ItemsPanelTemplate>
+
+        <DataTemplate x:Key="TagTemplate">
+            <Border Style="{StaticResource TagChip}" BorderBrush="{Binding Color}">
+                <TextBlock Text="{Binding Label}"
+                           Foreground="{Binding Color}"
+                           Style="{StaticResource TagChipText}" />
+            </Border>
+        </DataTemplate>
+
+        <Style x:Key="IdleWhileBusy" TargetType="StackPanel">
+            <Setter Property="Visibility" Value="Visible" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Gallery.IsRemoving}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsTrimming}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="TrimMarking" TargetType="StackPanel">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsTrimming}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsSaveAsked}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="TrimAsking" TargetType="StackPanel">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsSaveAsked}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="Chrome" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource VeilBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource EdgeBrush}" />
+            <Setter Property="Opacity" Value="1" />
+            <Setter Property="IsHitTestVisible" Value="True" />
+            <Style.Triggers>
+                <DataTrigger Value="False"
+                             Binding="{Binding ChromeShown, RelativeSource={RelativeSource AncestorType=Window}}">
+                    <Setter Property="IsHitTestVisible" Value="False" />
+                    <DataTrigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                 To="0"
+                                                 Duration="0:0:0.25" />
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.EnterActions>
+                    <DataTrigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                 To="1"
+                                                 Duration="0:0:0.12" />
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.ExitActions>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid Background="Transparent"
+          MouseLeftButtonDown="OnStageClicked"
+          MouseRightButtonDown="OnStageRightClicked"
+          MouseWheel="OnVolumeWheel">
+        <Image Source="{Binding Frame}"
+               Stretch="Uniform"
+               Visibility="{Binding HasPicture, Converter={StaticResource ShowWhenTrue}}" />
+
+        <TextBlock Text="{Binding FailureText}"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontSize="{StaticResource TitleSize}"
+                   Foreground="{StaticResource AccentBrush}"
+                   Visibility="{Binding IsBroken, Converter={StaticResource ShowWhenTrue}}" />
+
+        <Border x:Name="TopChrome"
+                VerticalAlignment="Top"
+                BorderThickness="0,0,0,1"
+                Padding="24,12"
+                Style="{StaticResource Chrome}"
+                MouseLeftButtonDown="OnChromeClicked">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0"
+                            VerticalAlignment="Center"
+                            DataContext="{Binding Gallery.Selected}">
+                    <TextBlock Text="{Binding HeadlineText}" Style="{StaticResource MutedText}" />
+                    <TextBlock Text="{Binding DetailsText}" Margin="0,4,0,0" Style="{StaticResource SmallMutedText}" />
+                </StackPanel>
+
+                <TextBlock Grid.Column="1"
+                           Margin="0,0,20,0"
+                           VerticalAlignment="Center"
+                           Text="{Binding Gallery.Trouble}"
+                           FontSize="{StaticResource SmallSize}"
+                           Foreground="{StaticResource AccentBrush}"
+                           Visibility="{Binding Gallery.HasTrouble, Converter={StaticResource ShowWhenTrue}}" />
+
+                <Button Grid.Column="2"
+                        Margin="0"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource TransportButton}"
+                        ToolTip="{l:T Player.LeaveFullScreen}"
+                        AutomationProperties.Name="{l:T Player.LeaveFullScreen}"
+                        Click="OnLeaveFullScreen">
+                    <Path Style="{StaticResource FullScreenGlyph}" />
+                </Button>
+            </Grid>
+        </Border>
+
+        <Border x:Name="BottomChrome"
+                VerticalAlignment="Bottom"
+                BorderThickness="0,1,0,0"
+                Padding="24,14"
+                Style="{StaticResource Chrome}"
+                MouseLeftButtonDown="OnChromeClicked">
+            <StackPanel>
+                <Grid>
+                    <Grid Margin="7,0"
+                          IsHitTestVisible="False"
+                          Visibility="{Binding IsTrimming, Converter={StaticResource ShowWhenTrue}}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="{Binding TrimHead}" />
+                            <ColumnDefinition Width="{Binding TrimBody}" />
+                            <ColumnDefinition Width="{Binding TrimTail}" />
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="1"
+                                Height="14"
+                                VerticalAlignment="Center"
+                                BorderThickness="2,0,2,0"
+                                BorderBrush="{StaticResource AccentBrush}"
+                                SnapsToDevicePixels="True">
+                            <Border Height="6"
+                                    VerticalAlignment="Center"
+                                    Background="{StaticResource AccentBrush}"
+                                    Opacity="0.35" />
+                        </Border>
+                    </Grid>
+                    <Slider x:Name="Scrub"
+                            Minimum="0"
+                            Maximum="{Binding TotalSeconds}"
+                            Value="{Binding PlayedSeconds}"
+                            IsEnabled="{Binding HasClip}"
+                            ToolTip="{l:T Player.Scrub}"
+                            AutomationProperties.Name="{l:T Player.Scrub}"
+                            Thumb.DragStarted="OnScrubStarted"
+                            Thumb.DragCompleted="OnScrubDone"
+                            Style="{StaticResource LineSlider}" />
+                </Grid>
+
+                <Grid Margin="0,12,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Style="{StaticResource TransportButton}"
+                                IsEnabled="{Binding CanStepBack}"
+                                ToolTip="{l:T Player.PrevClip}"
+                                AutomationProperties.Name="{l:T Player.PrevClip}"
+                                Click="OnStepBack">
+                            <Path Data="{StaticResource PrevGeometry}" Style="{StaticResource TransportGlyph}" />
+                        </Button>
+                        <Button Style="{StaticResource TransportButton}"
+                                IsEnabled="{Binding HasClip}"
+                                ToolTip="{Binding PlayName}"
+                                AutomationProperties.Name="{Binding PlayName}"
+                                Click="OnPlayToggled">
+                            <Path Style="{StaticResource PlayGlyph}" />
+                        </Button>
+                        <Button Style="{StaticResource TransportButton}"
+                                IsEnabled="{Binding CanStepNext}"
+                                ToolTip="{l:T Player.NextClip}"
+                                AutomationProperties.Name="{l:T Player.NextClip}"
+                                Click="OnStepNext">
+                            <Path Data="{StaticResource NextGeometry}" Style="{StaticResource TransportGlyph}" />
+                        </Button>
+                        <TextBlock Margin="10,0,0,0"
+                                   VerticalAlignment="Center"
+                                   Text="{Binding PositionText}"
+                                   Style="{StaticResource SmallMutedText}" />
+                    </StackPanel>
+
+                    <Grid Grid.Column="2" VerticalAlignment="Center">
+                    <StackPanel x:Name="TagSection"
+                                Orientation="Horizontal"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource IdleWhileBusy}">
+                        <Path Margin="0,0,8,0"
+                              VerticalAlignment="Center"
+                              Data="{StaticResource VolumeGeometry}"
+                              Fill="{StaticResource MutedBrush}" />
+                        <Slider x:Name="Sound"
+                                Width="88"
+                                Margin="0,0,20,0"
+                                VerticalAlignment="Center"
+                                Minimum="0"
+                                Maximum="1"
+                                Value="{Binding Volume}"
+                                ToolTip="{l:T Player.Volume}"
+                                AutomationProperties.Name="{l:T Player.Volume}"
+                                Style="{StaticResource LineSlider}" />
+                        <ItemsControl Margin="0,0,10,0"
+                                      VerticalAlignment="Center"
+                                      DataContext="{Binding Gallery.Selected}"
+                                      ItemsSource="{Binding Tags}"
+                                      ItemTemplate="{StaticResource TagTemplate}"
+                                      ItemsPanel="{StaticResource WrapPanelTemplate}" />
+                        <Button x:Name="TagButton"
+                                Content="{l:T Player.Tag}"
+                                Margin="0,0,10,0"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource BracketButton}"
+                                Click="OnTagsOpen"
+                                AutomationProperties.Name="{l:T Player.Tag.Name}"
+                                IsEnabled="{Binding Gallery.CanTag}" />
+                        <Button Content="{l:T Trim.Begin}"
+                                Margin="0,0,10,0"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource BracketButton}"
+                                Click="OnTrimBegin"
+                                ToolTip="{l:T Trim.Begin.Tip}"
+                                AutomationProperties.Name="{l:T Trim.Begin.Name}"
+                                IsEnabled="{Binding CanTrim}" />
+                        <Button Content="{l:T Player.Remove}"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource AccentBracketButton}"
+                                Click="OnRemoveAsked"
+                                AutomationProperties.Name="{l:T Player.Remove.Name}"
+                                IsEnabled="{Binding Gallery.CanRemove}" />
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal"
+                                VerticalAlignment="Center"
+                                Visibility="{Binding Gallery.IsRemoving, Converter={StaticResource ShowWhenTrue}}">
+                        <TextBlock Margin="0,0,14,0"
+                                   VerticalAlignment="Center"
+                                   Text="{Binding Gallery.RemoveQuestion}"
+                                   Style="{StaticResource SmallMutedText}" />
+                        <Button Content="{l:T Player.Cancel}"
+                                Margin="0,0,10,0"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource BracketButton}"
+                                AutomationProperties.Name="{l:T Player.RemoveCancel.Name}"
+                                Click="OnRemoveCancel" />
+                        <Button Content="{l:T Player.Recycle}"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource AccentBracketButton}"
+                                AutomationProperties.Name="{l:T Player.Recycle.Name}"
+                                Click="OnRemove" />
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource TrimMarking}">
+                        <TextBlock Margin="0,0,14,0"
+                                   VerticalAlignment="Center"
+                                   Text="{Binding TrimNote}"
+                                   FontSize="{StaticResource SmallSize}"
+                                   Foreground="{StaticResource AccentBrush}" />
+                        <TextBlock Margin="0,0,14,0"
+                                   VerticalAlignment="Center"
+                                   Text="{Binding TrimText}"
+                                   AutomationProperties.AutomationId="TrimRange"
+                                   Style="{StaticResource SmallMutedText}" />
+                        <Button Content="{l:T Trim.Start}"
+                                Margin="0,0,10,0"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource BracketButton}"
+                                Click="OnTrimStart"
+                                ToolTip="{l:T Trim.Start.Tip}"
+                                AutomationProperties.Name="{l:T Trim.Start.Name}"
+                                IsEnabled="{Binding CanMarkTrim}" />
+                        <Button Content="{l:T Trim.End}"
+                                Margin="0,0,20,0"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource BracketButton}"
+                                Click="OnTrimEnd"
+                                ToolTip="{l:T Trim.End.Tip}"
+                                AutomationProperties.Name="{l:T Trim.End.Name}"
+                                IsEnabled="{Binding CanMarkTrim}" />
+                        <Button Content="{l:T Player.Cancel}"
+                                Margin="0,0,10,0"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource BracketButton}"
+                                Click="OnTrimCancel"
+                                AutomationProperties.Name="{l:T Trim.Cancel.Name}" />
+                        <Button x:Name="TrimSaveButton"
+                                Content="{l:T Trim.Save}"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource AccentBracketButton}"
+                                Click="OnTrimSave"
+                                AutomationProperties.Name="{l:T Trim.Save.Name}"
+                                IsEnabled="{Binding CanSaveTrim}" />
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource TrimAsking}">
+                        <TextBlock Margin="0,0,14,0"
+                                   VerticalAlignment="Center"
+                                   Text="{Binding TrimText}"
+                                   Style="{StaticResource SmallMutedText}" />
+                        <Button x:Name="TrimKeepButton"
+                                Content="{l:T Trim.Keep}"
+                                Margin="0,0,10,0"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource AccentBracketButton}"
+                                Click="OnTrimKeep"
+                                ToolTip="{l:T Trim.Keep.Tip}"
+                                AutomationProperties.Name="{l:T Trim.Keep.Name}" />
+                        <Button Content="{l:T Trim.Replace}"
+                                Margin="0,0,10,0"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource BracketButton}"
+                                Click="OnTrimReplace"
+                                ToolTip="{l:T Trim.Replace.Tip}"
+                                AutomationProperties.Name="{l:T Trim.Replace.Name}" />
+                        <TextBlock Margin="0,0,20,0"
+                                   VerticalAlignment="Center"
+                                   Text="{l:T Trim.Replace.Note}"
+                                   Style="{StaticResource SmallMutedText}" />
+                        <Button Content="{l:T Player.Cancel}"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource BracketButton}"
+                                Click="OnTrimBack"
+                                AutomationProperties.Name="{l:T Trim.Ask.Cancel}" />
+                    </StackPanel>
+                    </Grid>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <Popup x:Name="TagPopup"
+               StaysOpen="False"
+               Placement="Top"
+               PlacementTarget="{Binding ElementName=TagSection}"
+               Opened="OnTagsOpened">
+            <gallery:TagPopover x:Name="TagForm"
+                                DataContext="{Binding Gallery}"
+                                Dismissed="OnTagsDismissed" />
+        </Popup>
+    </Grid>
+</Window>

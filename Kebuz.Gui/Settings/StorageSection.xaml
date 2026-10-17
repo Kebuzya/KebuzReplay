@@ -1,0 +1,68 @@
+<settings:SectionControl x:Class="Kebuz.Gui.Settings.StorageSection"
+                         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                         xmlns:l="clr-namespace:Kebuz.Gui.Localization"
+                         xmlns:settings="clr-namespace:Kebuz.Gui.Settings">
+
+    <settings:SectionControl.Resources>
+        <BooleanToVisibilityConverter x:Key="ShowWhenTrue" />
+    </settings:SectionControl.Resources>
+
+    <StackPanel>
+        <Grid Margin="0,0,0,4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="190" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="{l:T Settings.Storage.Folder}" Style="{StaticResource FieldLabel}" />
+            <TextBlock Grid.Column="1"
+                       Text="{Binding ClipsFolder}"
+                       VerticalAlignment="Center"
+                       TextTrimming="CharacterEllipsis"
+                       Foreground="{StaticResource AccentBrush}" />
+            <Button Grid.Column="2"
+                    Content="{l:T Settings.Storage.Browse}"
+                    Click="OnBrowse"
+                    AutomationProperties.Name="{l:T Settings.Storage.BrowseName}"
+                    Style="{StaticResource BracketButton}" />
+        </Grid>
+        <TextBlock Text="{Binding OccupiedText}" Margin="0,10,0,0" Style="{StaticResource SmallMutedText}" />
+        <TextBlock Text="{Binding ClipWeightText}" Margin="0,6,0,18" Style="{StaticResource SmallMutedText}" />
+        <CheckBox Content="{l:T Settings.Storage.Limit}"
+                  IsChecked="{Binding LimitFolder}"
+                  Margin="0,0,0,10"
+                  Style="{StaticResource OptionCheck}" />
+        <Grid IsEnabled="{Binding LimitFolder}" Style="{StaticResource NestedRow}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="166" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="70" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="{l:T Settings.Storage.LimitLabel}" Style="{StaticResource FieldLabel}" />
+            <Slider Grid.Column="1"
+                    Minimum="5"
+                    Maximum="200"
+                    TickFrequency="5"
+                    IsSnapToTickEnabled="True"
+                    SmallChange="5"
+                    LargeChange="20"
+                    AutomationProperties.Name="{l:T Settings.Storage.LimitLabel}"
+                    ValueChanged="OnSliderChanged"
+                    Value="{Binding LimitGigabytes}"
+                    Style="{StaticResource SecondLineSlider}" />
+            <TextBlock Grid.Column="2"
+                       Text="{Binding LimitText}"
+                       HorizontalAlignment="Right"
+                       Style="{StaticResource FieldLabel}" />
+        </Grid>
+        <CheckBox Content="{l:T Settings.Storage.DeleteOld}"
+                  IsChecked="{Binding DeleteOld}"
+                  IsEnabled="{Binding LimitFolder}"
+                  Margin="24,0,0,0"
+                  Style="{StaticResource OptionCheck}" />
+        <TextBlock Text="{Binding WarningText}"
+                   Style="{StaticResource Complaint}"
+                   Visibility="{Binding HasWarning, Converter={StaticResource ShowWhenTrue}}" />
+    </StackPanel>
+</settings:SectionControl>

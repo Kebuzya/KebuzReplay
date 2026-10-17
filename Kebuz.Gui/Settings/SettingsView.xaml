@@ -1,0 +1,465 @@
+<UserControl x:Class="Kebuz.Gui.Settings.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:Kebuz.Gui.Localization"
+             xmlns:settings="clr-namespace:Kebuz.Gui.Settings"
+             PreviewKeyDown="OnKeyCaptured"
+             Background="{StaticResource AppBrush}">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="ShowWhenTrue" />
+
+        <DataTemplate x:Key="WatchedAppTemplate">
+            <StackPanel>
+                <Grid Margin="0,0,0,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="190" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="{Binding Title}" Style="{StaticResource FieldLabel}" />
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding Executable}"
+                               ToolTip="{Binding Location}"
+                               VerticalAlignment="Center"
+                               Style="{StaticResource MutedText}" />
+                    <Button Grid.Column="2"
+                            Content="{l:T Settings.Games.Profile}"
+                            Padding="9,3"
+                            Margin="0,0,6,0"
+                            FontSize="{StaticResource SmallSize}"
+                            Tag="{Binding}"
+                            Click="OnEditProfile"
+                            AutomationProperties.Name="{Binding ProfileName}"
+                            Style="{StaticResource BracketButton}" />
+                    <Button Grid.Column="3"
+                            Content="{l:T Settings.Common.Remove}"
+                            Padding="9,3"
+                            FontSize="{StaticResource SmallSize}"
+                            Tag="{Binding}"
+                            Click="OnRemoveGameAsked"
+                            AutomationProperties.Name="{Binding Warning}"
+                            Style="{StaticResource BracketButton}" />
+                </Grid>
+                <TextBlock Text="{Binding ProfileText}"
+                           Margin="0,0,0,6"
+                           TextWrapping="Wrap"
+                           Style="{StaticResource SmallMutedText}"
+                           Visibility="{Binding HasProfile, Converter={StaticResource ShowWhenTrue}}" />
+                <StackPanel Margin="0,0,0,10"
+                            Visibility="{Binding IsConfirming, Converter={StaticResource ShowWhenTrue}}">
+                    <TextBlock Text="{Binding Warning}"
+                               TextWrapping="Wrap"
+                               Style="{StaticResource SmallMutedText}" />
+                    <StackPanel Orientation="Horizontal" Margin="0,7,0,0" HorizontalAlignment="Left">
+                        <Button Content="{l:T Settings.Common.Cancel}"
+                                Margin="0,0,6,0"
+                                Style="{StaticResource SmallBracketButton}"
+                                Click="OnRemoveGameCancel" />
+                        <Button Content="{l:T Settings.Common.Remove}"
+                                Tag="{Binding}"
+                                Style="{StaticResource SmallAccentBracketButton}"
+                                Click="OnRemoveGame" />
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="FoundGameTemplate">
+            <Grid Margin="0,0,0,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="190" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0"
+                           Text="{Binding Title}"
+                           TextTrimming="CharacterEllipsis"
+                           Style="{StaticResource FieldLabel}" />
+                <TextBlock Grid.Column="1"
+                           Text="{Binding Executable}"
+                           ToolTip="{Binding Location}"
+                           VerticalAlignment="Center"
+                           Style="{StaticResource MutedText}" />
+                <Button Grid.Column="2"
+                        Content="{l:T Settings.Games.Record}"
+                        Padding="9,3"
+                        Margin="0,0,6,0"
+                        FontSize="{StaticResource SmallSize}"
+                        Tag="{Binding}"
+                        Click="OnFoundAccepted"
+                        AutomationProperties.Name="{Binding RecordName}"
+                        Style="{StaticResource BracketButton}" />
+                <Button Grid.Column="3"
+                        Content="{l:T Settings.Games.NotGame}"
+                        Padding="9,3"
+                        FontSize="{StaticResource SmallSize}"
+                        Tag="{Binding}"
+                        Click="OnFoundRejected"
+                        AutomationProperties.Name="{Binding RejectName}"
+                        Style="{StaticResource BracketButton}" />
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate x:Key="IgnoredAppTemplate">
+            <Grid Margin="0,0,0,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="190" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0"
+                           Text="{Binding Title}"
+                           TextTrimming="CharacterEllipsis"
+                           Style="{StaticResource FieldLabel}" />
+                <TextBlock Grid.Column="1"
+                           Text="{Binding Executable}"
+                           ToolTip="{Binding Location}"
+                           VerticalAlignment="Center"
+                           Style="{StaticResource MutedText}" />
+                <Button Grid.Column="2"
+                        Content="{l:T Settings.Common.Remove}"
+                        Padding="9,3"
+                        FontSize="{StaticResource SmallSize}"
+                        Tag="{Binding}"
+                        Click="OnUnignore"
+                        AutomationProperties.Name="{Binding RemoveName}"
+                        Style="{StaticResource BracketButton}" />
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate x:Key="RunningAppTemplate">
+            <Grid Margin="0,0,0,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="190" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0"
+                           Text="{Binding Title}"
+                           ToolTip="{Binding Title}"
+                           TextTrimming="CharacterEllipsis"
+                           Style="{StaticResource FieldLabel}" />
+                <TextBlock Grid.Column="1"
+                           Text="{Binding Executable}"
+                           ToolTip="{Binding Location}"
+                           Margin="8,0,8,0"
+                           TextTrimming="CharacterEllipsis"
+                           VerticalAlignment="Center"
+                           Style="{StaticResource MutedText}" />
+                <Button Grid.Column="2"
+                        Content="{l:T Settings.Games.AsGame}"
+                        Padding="9,3"
+                        Margin="0,0,6,0"
+                        FontSize="{StaticResource SmallSize}"
+                        Tag="{Binding}"
+                        Click="OnRunningAdded"
+                        AutomationProperties.Name="{Binding GameName}"
+                        Style="{StaticResource BracketButton}" />
+                <Button Grid.Column="3"
+                        Content="{l:T Settings.Games.NotGame}"
+                        Padding="9,3"
+                        FontSize="{StaticResource SmallSize}"
+                        Tag="{Binding}"
+                        Click="OnRunningIgnored"
+                        AutomationProperties.Name="{Binding IgnoreName}"
+                        Style="{StaticResource BracketButton}" />
+            </Grid>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid Visibility="{Binding IsCommonOpen, Converter={StaticResource ShowWhenTrue}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="196" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel x:Name="Nav" Grid.Column="0" Margin="0,14,0,0">
+                <RadioButton Content="{l:T Settings.Quality.Title}"
+                             IsChecked="True"
+                             Checked="OnSectionPicked"
+                             Tag="{Binding ElementName=QualityBlock}"
+                             Style="{StaticResource NavItem}" />
+                <RadioButton Content="{l:T Settings.Buffer.Title}"
+                             Checked="OnSectionPicked"
+                             Tag="{Binding ElementName=BufferBlock}"
+                             Style="{StaticResource NavItem}" />
+                <RadioButton Content="{l:T Settings.Hotkey.Title}"
+                             Checked="OnSectionPicked"
+                             Tag="{Binding ElementName=HotkeyBlock}"
+                             Style="{StaticResource NavItem}" />
+                <RadioButton Content="{l:T Settings.Games.Title}"
+                             Checked="OnSectionPicked"
+                             Tag="{Binding ElementName=GamesBlock}"
+                             Style="{StaticResource NavItem}" />
+                <RadioButton Content="{l:T Settings.Sound.Title}"
+                             Checked="OnSectionPicked"
+                             Tag="{Binding ElementName=SoundBlock}"
+                             Style="{StaticResource NavItem}" />
+                <RadioButton Content="{l:T Settings.Storage.Title}"
+                             Checked="OnSectionPicked"
+                             Tag="{Binding ElementName=StorageBlock}"
+                             Style="{StaticResource NavItem}" />
+                <RadioButton Content="{l:T Settings.About.Title}"
+                             Checked="OnSectionPicked"
+                             Tag="{Binding ElementName=AboutBlock}"
+                             Style="{StaticResource NavItem}" />
+            </StackPanel>
+
+            <Border Grid.Column="1" Width="1" Background="{StaticResource EdgeBrush}" />
+
+            <ScrollViewer x:Name="Body"
+                          Grid.Column="2"
+                          ScrollChanged="OnBodyScrolled"
+                          AutomationProperties.AutomationId="SettingsBody"
+                          Style="{StaticResource ThinScrollViewer}">
+                <StackPanel Margin="28,22,20,28" MaxWidth="760" HorizontalAlignment="Left">
+
+                    <StackPanel x:Name="QualityBlock">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{l:T Settings.Quality.Heading}" Style="{StaticResource SectionHeader}" />
+                            <settings:HelpButton Title="{l:T Settings.Quality.Title}"
+                                                 Margin="10,-2,0,0"
+                                                 VerticalAlignment="Top"
+                                                 Text="{l:T Settings.Quality.Help}" />
+                        </StackPanel>
+                        <settings:QualitySection DataContext="{Binding Quality}" />
+                    </StackPanel>
+
+                    <Border Style="{StaticResource Divider}" Margin="0,26" />
+
+                    <StackPanel x:Name="BufferBlock">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{l:T Settings.Buffer.Heading}" Style="{StaticResource SectionHeader}" />
+                            <settings:HelpButton Title="{l:T Settings.Buffer.Title}"
+                                                 Margin="10,-2,0,0"
+                                                 VerticalAlignment="Top"
+                                                 Text="{l:T Settings.Buffer.Help}" />
+                        </StackPanel>
+                        <settings:BufferSection DataContext="{Binding Buffer}" />
+                    </StackPanel>
+
+                    <Border Style="{StaticResource Divider}" Margin="0,26" />
+
+                    <StackPanel x:Name="HotkeyBlock">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{l:T Settings.Hotkey.Heading}" Style="{StaticResource SectionHeader}" />
+                            <settings:HelpButton Title="{l:T Settings.Hotkey.Title}"
+                                                 Margin="10,-2,0,0"
+                                                 VerticalAlignment="Top"
+                                                 Text="{l:T Settings.Hotkey.Help}" />
+                        </StackPanel>
+                        <settings:HotkeySection x:Name="HotkeyPart" DataContext="{Binding Hotkey}" />
+                    </StackPanel>
+
+                    <Border Style="{StaticResource Divider}" Margin="0,26" />
+
+                    <StackPanel x:Name="GamesBlock">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{l:T Settings.Games.Heading}" Style="{StaticResource SectionHeader}" />
+                            <settings:HelpButton Title="{l:T Settings.Games.Title}"
+                                                 Margin="10,-2,0,0"
+                                                 VerticalAlignment="Top"
+                                                 Text="{l:T Settings.Games.Help}" />
+                        </StackPanel>
+                        <ItemsControl ItemsSource="{Binding Games.Apps}"
+                                      AutomationProperties.AutomationId="WatchedApps"
+                                      ItemTemplate="{StaticResource WatchedAppTemplate}" />
+                        <TextBlock Text="{l:T Settings.Games.Empty}"
+                                   Margin="0,0,0,6"
+                                   Style="{StaticResource SmallMutedText}"
+                                   Visibility="{Binding Games.IsEmpty, Converter={StaticResource ShowWhenTrue}}" />
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <Button Content="{l:T Settings.Games.Add}"
+                                    Click="OnAddGame"
+                                    AutomationProperties.AutomationId="AddGame"
+                                    AutomationProperties.Name="{l:T Settings.Games.AddName}"
+                                    Style="{StaticResource BracketButton}" />
+                            <Button Content="{l:T Settings.Games.PickRunning}"
+                                    Margin="6,0,0,0"
+                                    Click="OnPickRunning"
+                                    AutomationProperties.AutomationId="PickRunning"
+                                    AutomationProperties.Name="{l:T Settings.Games.PickRunningName}"
+                                    Style="{StaticResource BracketButton}" />
+                        </StackPanel>
+                        <StackPanel Margin="0,14,0,0"
+                                    Visibility="{Binding Games.IsPicking, Converter={StaticResource ShowWhenTrue}}">
+                            <TextBlock Text="{l:T Settings.Games.RunningNow}"
+                                       Margin="0,0,0,6"
+                                       Style="{StaticResource SmallMutedText}" />
+                            <ItemsControl ItemsSource="{Binding Games.Running}"
+                                          AutomationProperties.AutomationId="RunningApps"
+                                          ItemTemplate="{StaticResource RunningAppTemplate}" />
+                            <TextBlock Text="{l:T Settings.Games.NoRunning}"
+                                       Margin="0,0,0,6"
+                                       Style="{StaticResource SmallMutedText}"
+                                       Visibility="{Binding Games.HasNoRunning, Converter={StaticResource ShowWhenTrue}}" />
+                            <Button Content="{l:T Settings.Common.Close}"
+                                    HorizontalAlignment="Left"
+                                    Margin="0,4,0,0"
+                                    Click="OnPickDone"
+                                    AutomationProperties.AutomationId="PickDone"
+                                    AutomationProperties.Name="{l:T Settings.Games.CloseListName}"
+                                    Style="{StaticResource SmallBracketButton}" />
+                        </StackPanel>
+                        <TextBlock Text="{Binding Games.Complaint}"
+                                   Style="{StaticResource Complaint}"
+                                   Visibility="{Binding Games.HasComplaint, Converter={StaticResource ShowWhenTrue}}" />
+
+                        <CheckBox Content="{l:T Settings.Games.Detect}"
+                                  IsChecked="{Binding DetectGames}"
+                                  Margin="0,18,0,0"
+                                  AutomationProperties.AutomationId="DetectGames"
+                                  Style="{StaticResource OptionCheck}" />
+
+                        <settings:AfterExitSection Margin="0,18,0,0" />
+
+                        <CheckBox Content="{l:T Settings.Games.FollowLarger}"
+                                  IsChecked="{Binding FollowLargerWindow}"
+                                  Margin="0,18,0,0"
+                                  AutomationProperties.AutomationId="FollowLargerWindow"
+                                  Style="{StaticResource OptionCheck}" />
+
+                        <StackPanel Margin="0,14,0,0"
+                                    Visibility="{Binding Games.HasFound, Converter={StaticResource ShowWhenTrue}}">
+                            <TextBlock Text="{l:T Settings.Games.FoundTitle}"
+                                       Margin="0,0,0,6"
+                                       Style="{StaticResource SmallMutedText}" />
+                            <ItemsControl ItemsSource="{Binding Games.Found}"
+                                          AutomationProperties.AutomationId="FoundGames"
+                                          ItemTemplate="{StaticResource FoundGameTemplate}" />
+                        </StackPanel>
+
+                        <StackPanel Margin="0,14,0,0"
+                                    Visibility="{Binding Games.HasIgnored, Converter={StaticResource ShowWhenTrue}}">
+                            <TextBlock Text="{l:T Settings.Games.IgnoredTitle}"
+                                       Margin="0,0,0,6"
+                                       Style="{StaticResource SmallMutedText}" />
+                            <ItemsControl ItemsSource="{Binding Games.Ignored}"
+                                          AutomationProperties.AutomationId="IgnoredApps"
+                                          ItemTemplate="{StaticResource IgnoredAppTemplate}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Border Style="{StaticResource Divider}" Margin="0,26" />
+
+                    <StackPanel x:Name="SoundBlock">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{l:T Settings.Sound.Heading}" Style="{StaticResource SectionHeader}" />
+                            <settings:HelpButton Title="{l:T Settings.Sound.Title}"
+                                                 Margin="10,-2,0,0"
+                                                 VerticalAlignment="Top"
+                                                 Text="{l:T Settings.Sound.Help}" />
+                        </StackPanel>
+                        <settings:SoundSection DataContext="{Binding Sound}" />
+                    </StackPanel>
+
+                    <Border Style="{StaticResource Divider}" Margin="0,26" />
+
+                    <StackPanel x:Name="StorageBlock">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{l:T Settings.Storage.Heading}" Style="{StaticResource SectionHeader}" />
+                            <settings:HelpButton Title="{l:T Settings.Storage.Title}"
+                                                 Margin="10,-2,0,0"
+                                                 VerticalAlignment="Top"
+                                                 Text="{l:T Settings.Storage.Help}" />
+                        </StackPanel>
+                        <settings:StorageSection />
+                    </StackPanel>
+
+                    <Border Style="{StaticResource Divider}" Margin="0,26" />
+
+                    <StackPanel x:Name="AboutBlock">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{l:T Settings.About.Heading}" Style="{StaticResource SectionHeader}" />
+                            <settings:HelpButton Title="{l:T Settings.About.Title}"
+                                                 Margin="10,-2,0,0"
+                                                 VerticalAlignment="Top"
+                                                 Text="{l:T Settings.About.Help}" />
+                        </StackPanel>
+                        <TextBlock Text="{Binding VersionText}"
+                                   AutomationProperties.AutomationId="VersionText" />
+                        <TextBlock Text="{Binding RepositoryText}"
+                                   Margin="0,6,0,14"
+                                   Style="{StaticResource SmallMutedText}" />
+                        <TextBlock Text="{l:T Settings.Language}"
+                                   Margin="0,0,0,8"
+                                   Style="{StaticResource FieldLabel}" />
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                            <RadioButton Content="{l:T Settings.LanguageSystem}"
+                                         IsChecked="{Binding IsLanguageSystem}"
+                                         Margin="0,0,24,0"
+                                         AutomationProperties.AutomationId="LanguageSystem"
+                                         Style="{StaticResource OptionRadio}" />
+                            <RadioButton Content="{l:T Language.Russian}"
+                                         IsChecked="{Binding IsLanguageRussian}"
+                                         Margin="0,0,24,0"
+                                         AutomationProperties.AutomationId="LanguageRussian"
+                                         Style="{StaticResource OptionRadio}" />
+                            <RadioButton Content="{l:T Language.English}"
+                                         IsChecked="{Binding IsLanguageEnglish}"
+                                         AutomationProperties.AutomationId="LanguageEnglish"
+                                         Style="{StaticResource OptionRadio}" />
+                        </StackPanel>
+                        <CheckBox Content="{l:T Settings.About.CheckUpdates}"
+                                  IsChecked="{Binding CheckUpdates}"
+                                  AutomationProperties.AutomationId="CheckUpdates"
+                                  Style="{StaticResource OptionCheck}" />
+                    </StackPanel>
+
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <ContentControl Content="{Binding Profile}"
+                        Visibility="{Binding IsProfileOpen, Converter={StaticResource ShowWhenTrue}}"
+                        Focusable="False">
+            <ContentControl.ContentTemplate>
+                <DataTemplate>
+                    <settings:ProfileView />
+                </DataTemplate>
+            </ContentControl.ContentTemplate>
+        </ContentControl>
+        <Border HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Margin="0,16,26,0"
+                MaxWidth="360"
+                Style="{StaticResource Popover}"
+                BorderBrush="{StaticResource AccentBrush}"
+                AutomationProperties.AutomationId="ApplyNotice"
+                Visibility="{Binding ShowApplyNotice, Converter={StaticResource ShowWhenTrue}}">
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{l:T Settings.Apply.Text}"
+                               TextWrapping="Wrap"
+                               Style="{StaticResource SmallMutedText}" />
+                    <Button Grid.Column="1"
+                            Content="×"
+                            Margin="10,-2,0,0"
+                            VerticalAlignment="Top"
+                            Click="OnCloseApplyNotice"
+                            ToolTip="{l:T Settings.Apply.Close}"
+                            AutomationProperties.AutomationId="ApplyNoticeClose"
+                            AutomationProperties.Name="{l:T Settings.Apply.Close}"
+                            Style="{StaticResource SmallBracketButton}" />
+                </Grid>
+                <Button Content="{l:T Settings.Apply.Now}"
+                        Margin="0,10,0,0"
+                        HorizontalAlignment="Left"
+                        Click="OnApplyNow"
+                        AutomationProperties.AutomationId="ApplyNoticeApply"
+                        AutomationProperties.Name="{l:T Settings.Apply.NowName}"
+                        Style="{StaticResource BracketButton}" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>
