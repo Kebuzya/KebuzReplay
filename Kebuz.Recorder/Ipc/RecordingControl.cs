@@ -21,3 +21,8 @@ public sealed record RecoveryFile(string Id, string Folder, string Group, string
 {
     public override string ToString() => Folder;
 }
+
+internal sealed class RecordingFailure(string key) : Exception(Localization.Strings.Get(key))
+{
+    public string Key { get; } = key;
+}

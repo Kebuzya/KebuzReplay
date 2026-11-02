@@ -39,6 +39,7 @@
   "Recording.SourceClosed": "The selected window or monitor is no longer available.",
   "Recording.NoFrames": "The recording stopped before any video frames were received.",
   "Recording.Error": "Recording: {0}",
+  "Recording.Failed": "The recording operation failed. See the log for details.",
   "Recording.ApplicationAudio": "Selected application audio",
   "Recording.ControlHotkey": "Start / stop shortcut",
   "Recording.ControlAction": "Start / stop",

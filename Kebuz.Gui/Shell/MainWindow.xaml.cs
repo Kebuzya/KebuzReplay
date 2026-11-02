@@ -81,7 +81,7 @@ public partial class MainWindow : Window
         link.RecorderRestarted += reason => Dispatcher.Invoke(() => gallery.NoteRestart(reason));
         link.RecordingControlChanged += next => Dispatcher.Invoke(() =>
         {
-            recording.SetState(next);
+            RecordingUiState.Apply(next, recording, gallery, settings);
             if (next.StopConfirmation)
             {
                 ShowFromTray();
@@ -107,7 +107,7 @@ public partial class MainWindow : Window
         GalleryScreen.IsVisibleChanged += (_, _) => WatchLevels();
         link.WhenSettings(next => Dispatcher.Invoke(() => Adopt(next)));
         link.WhenHotkey(state => Dispatcher.Invoke(() => OnHotkeyChanged(state)));
-        if (link.RecordingSnapshot is { } control) recording.SetState(control);
+        if (link.RecordingSnapshot is { } control) RecordingUiState.Apply(control, recording, gallery, settings);
         if (link.ControlKeySnapshot is { } controlKey) recording.NoteHotkey(controlKey);
         recording.RefreshSources();
     }

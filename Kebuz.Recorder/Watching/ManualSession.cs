@@ -28,7 +28,7 @@ internal sealed class ManualSession : IDisposable
     public bool Continuous => continuous is not null;
     public double Seconds => continuous?.Seconds ?? buffer?.Status.Duration.TotalSeconds ?? 0;
     public long Bytes => continuous?.Bytes ?? (buffer?.Status.Bytes ?? 0) + (buffer?.Audio?.Status.Capacity ?? 0);
-    public Exception? Failure => (Volatile.Read(ref sourceClosed) ? new IOException(Localization.Strings.Get("Recording.SourceClosed")) : null)
+    public Exception? Failure => (Volatile.Read(ref sourceClosed) ? new RecordingFailure("Recording.SourceClosed") : null)
         ?? continuous?.Failure ?? runner.Failure
         ?? (device.LossReason() is { } reason ? new IOException($"Устройство D3D потеряно: 0x{reason:X8}") : null);
 

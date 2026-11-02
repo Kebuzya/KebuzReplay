@@ -39,6 +39,7 @@
   "Recording.SourceClosed": "Выбранное окно или монитор больше недоступны.",
   "Recording.NoFrames": "Запись остановлена до получения первых видеокадров.",
   "Recording.Error": "Запись: {0}",
+  "Recording.Failed": "Не удалось выполнить операцию записи. Подробности в журнале.",
   "Recording.ApplicationAudio": "Звук выбранного приложения",
   "Recording.ControlHotkey": "Сочетание запуска / остановки",
   "Recording.ControlAction": "Запуск / остановка",

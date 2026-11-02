@@ -217,3 +217,18 @@ public sealed class RecordingPanelModel : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(string.Empty));
     }
 }
+
+internal static class RecordingUiState
+{
+    public static void Apply(RecordingControlState next, RecordingPanelModel panel, GalleryModel gallery, SettingsModel settings)
+    {
+        panel.SetState(next);
+        if (!next.Active)
+        {
+            var idle = new RecordingState(false, null, null);
+            gallery.SetRecording(idle);
+            settings.SetRecording(idle);
+        }
+        settings.Sample.SetRecording(next.Active || next.Stage is "starting" or "finalizing");
+    }
+}

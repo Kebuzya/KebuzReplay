@@ -95,7 +95,7 @@ internal sealed partial class SessionDirector
             catch (Exception ex)
             {
                 report($"ручная запись: {ex.Message}");
-                controlError = Strings.Code("Recording.Error", ex.Message);
+                controlError = FailureCode(ex);
                 if (command.Action == "sources")
                     controlPublish(PipeMessages.CaptureSources, new CaptureSourceList([], controlError));
             }
@@ -116,7 +116,7 @@ internal sealed partial class SessionDirector
         }
         var selected = common.Manual?.SourceId;
         var source = CaptureSources.List().SingleOrDefault(item => item.Id == selected)
-            ?? throw new InvalidOperationException(Strings.Get("Recording.SourceMissing"));
+            ?? throw new RecordingFailure("Recording.SourceMissing");
         var group = source.Kind == CaptureSourceKind.Monitor ? "Desktop"
             : apps.Match(source.Application, () => source.ExecutablePath)?.Title
                 ?? Path.GetFileNameWithoutExtension(source.Application);
@@ -165,14 +165,17 @@ internal sealed partial class SessionDirector
         }
         catch (Exception ex)
         {
-            controlError = Strings.Code("Recording.Error", ex.Message);
+            controlError = FailureCode(ex);
             report($"ручная запись остановлена с ошибкой: {ex.Message}");
         }
         finally
         {
-            closing.Dispose();
-            state(new RecordingState(false, null, null));
-            stopConfirmation = false;
+            try { closing.Dispose(); }
+            finally
+            {
+                state(new RecordingState(false, null, null));
+                stopConfirmation = false;
+            }
         }
     }
 
@@ -185,17 +188,20 @@ internal sealed partial class SessionDirector
             {
                 if (current.Failure is { } error) throw error;
                 if (!CaptureSources.List().Any(item => item.Id == current.Source.Id && item.Handle == current.Source.Handle))
-                    throw new IOException(Strings.Get("Recording.SourceClosed"));
+                    throw new RecordingFailure("Recording.SourceClosed");
                 if (!current.Continuous) memory(current.Bytes);
             }
             catch (Exception ex)
             {
-                controlError = Strings.Code("Recording.Error", ex.Message);
+                controlError = FailureCode(ex);
                 StopManual(false);
             }
         }
         PublishControl();
     }
+
+    private static string FailureCode(Exception error) => Strings.Code(error is RecordingFailure known
+        ? known.Key : "Recording.Failed");
 
     private void PublishControl(bool recoveries = false, string? stage = null)
     {

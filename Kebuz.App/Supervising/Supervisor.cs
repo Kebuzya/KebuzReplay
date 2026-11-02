@@ -328,7 +328,15 @@ internal static class Supervisor
         switch (message.Type)
         {
             case PipeMessages.RecordingControlState:
-                lock (gate) lastControl = message;
+                lock (gate)
+                {
+                    lastControl = message;
+                    if (PipeProtocol.Unpack<RecordingControlState>(message) is { Active: false })
+                    {
+                        lastState = PipeProtocol.Carry(PipeMessages.RecordingStateChanged, new RecordingState(false, null, null));
+                        lastShot = null;
+                    }
+                }
                 toGui?.Forward(message);
                 return;
             case PipeMessages.CaptureSources:
