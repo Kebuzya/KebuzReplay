@@ -99,8 +99,9 @@
             </Grid>
         </StackPanel>
 
-        <TextBlock Text="{l:T Settings.Quality.CaptureHeading}" Margin="0,28,0,14" Style="{StaticResource SectionHeader}" />
-        <StackPanel Orientation="Horizontal">
+        <TextBlock Text="{l:T Settings.Quality.CaptureHeading}" Margin="0,28,0,14" Style="{StaticResource SectionHeader}"
+                   Visibility="{Binding AllowCaptureMode, Converter={StaticResource ShowWhenTrue}}" />
+        <StackPanel Orientation="Horizontal" Visibility="{Binding AllowCaptureMode, Converter={StaticResource ShowWhenTrue}}">
             <RadioButton Content="{l:T Settings.Quality.CaptureStandard}"
                          IsChecked="{Binding IsStandardCapture}"
                          Style="{StaticResource OptionRadio}" />
@@ -131,7 +132,8 @@
             <TextBlock Grid.Row="3" Grid.Column="1" Text="{l:T Settings.Quality.EncoderValue}" Style="{StaticResource MutedText}" />
         </Grid>
 
-        <StackPanel Orientation="Horizontal" Margin="0,18,0,0">
+        <StackPanel Orientation="Horizontal" Margin="0,18,0,0"
+                    Visibility="{Binding HasSample, Converter={StaticResource ShowWhenTrue}}">
             <Button x:Name="SampleButton"
                     Content="{l:T Settings.Sample.Show}"
                     Click="OnSample"

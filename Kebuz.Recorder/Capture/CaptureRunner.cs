@@ -15,7 +15,8 @@ internal sealed record CaptureRequest(
     uint FrameRate,
     Action<string> Trace,
     bool WatchBlank = false,
-    Action<ShotImage>? Shot = null);
+    Action<ShotImage>? Shot = null,
+    TimeSpan? CompletionTimeout = null);
 
 internal sealed record CaptureResult(
     int FramesCaptured,
@@ -505,7 +506,7 @@ internal sealed class CaptureRunner : IDisposable
         request.Trace(Rhythm());
 
         request.Trace("дожидаюсь энкодера");
-        var completed = pump.TryComplete(StallTimeout);
+        var completed = pump.TryComplete(request.CompletionTimeout ?? StallTimeout);
         var failure = pump.Failure;
 
         if (!completed)

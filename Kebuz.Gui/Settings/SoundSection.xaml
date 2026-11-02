@@ -108,7 +108,7 @@
         </Grid>
 
         <StackPanel IsEnabled="{Binding IsByApps}" Style="{StaticResource NestedGroup}">
-            <Grid Margin="0,0,0,10">
+            <Grid Margin="0,0,0,10" IsEnabled="{Binding GameSourceAvailable}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="266" />
                     <ColumnDefinition Width="*" />
@@ -120,7 +120,8 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <CheckBox Grid.Row="0" Grid.Column="0"
-                          Content="{l:T Settings.Sound.GameSound}"
+                          Content="{Binding GameSourceTitle}"
+                          IsEnabled="{Binding GameSourceAvailable}"
                           IsChecked="{Binding GameSound}"
                           Style="{StaticResource OptionCheck}" />
                 <Slider Grid.Row="0" Grid.Column="1"

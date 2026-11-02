@@ -218,7 +218,8 @@ public static class RecorderHost
                 link is null ? null : link.WhenLevelWatch,
                 options.AudioMeter,
                 link is null ? null : link.WhenApplyNow,
-                options.ShotOut));
+                options.ShotOut,
+                link is null ? null : link.WhenRecordingCommand));
 
             return 0;
         }

@@ -18,7 +18,7 @@ internal sealed record WatchSettings(
     TimeSpan MarkAt = default,
     bool? FollowLarger = null);
 
-internal sealed class SessionDirector : IDisposable
+internal sealed partial class SessionDirector : IDisposable
 {
     private const int WindowSettleScans = 2;
     private const int RecoveryLimit = 3;
@@ -109,7 +109,8 @@ internal sealed class SessionDirector : IDisposable
         Action<Exception>? fatal = null,
         Action<string?>? rebind = null,
         Action<DetectedGame>? detected = null,
-        Action<CaptureShot>? shown = null)
+        Action<CaptureShot>? shown = null,
+        Action<string, object>? controlPublish = null)
     {
         this.apps = apps;
         this.settings = settings;
@@ -126,6 +127,7 @@ internal sealed class SessionDirector : IDisposable
         this.rebind = rebind ?? (_ => { });
         this.detected = detected ?? (_ => { });
         this.shown = shown ?? (_ => { });
+        this.controlPublish = controlPublish ?? ((_, _) => { });
 
         simulationsLeft = settings.FailDeviceAfter > TimeSpan.Zero ? settings.FailDeviceTimes : 0;
         appsStamp = Stamp(apps.StoragePath);
@@ -170,6 +172,11 @@ internal sealed class SessionDirector : IDisposable
     {
         lock (gate)
         {
+            if (manualSession is not null)
+            {
+                manualSession.Mark();
+                return;
+            }
             if (session is null)
             {
                 trace("хоткей нажат, но сессия не активна");
@@ -184,6 +191,7 @@ internal sealed class SessionDirector : IDisposable
     {
         while (!Stopping())
         {
+            wake.Reset();
             try
             {
                 Tick();
@@ -221,6 +229,13 @@ internal sealed class SessionDirector : IDisposable
         ReloadIgnored();
 
         ProcessScanner.Snapshot(processes);
+
+        HandleControl();
+        if (common?.ManualControl == true || manualSession is not null)
+        {
+            TickManual();
+            return;
+        }
 
         if (abandonedId != 0 && !Alive(abandonedId))
         {
@@ -269,6 +284,7 @@ internal sealed class SessionDirector : IDisposable
             folder = null;
             folderApp = null;
         }
+        PublishControl();
     }
 
     private void Adopt()
@@ -562,6 +578,7 @@ internal sealed class SessionDirector : IDisposable
     {
         foreach (var process in processes)
         {
+            if (process.Id == suppressedId) continue;
             if (process.Id == abandonedId)
             {
                 continue;
@@ -1124,6 +1141,7 @@ internal sealed class SessionDirector : IDisposable
         }
 
         afterApp = null;
+        stopConfirmation = false;
 
         if (current is not null)
         {
@@ -1195,6 +1213,7 @@ internal sealed class SessionDirector : IDisposable
     private void Close()
     {
         detector.Dispose();
+        StopManual(false);
 
         var closing = Detach();
 

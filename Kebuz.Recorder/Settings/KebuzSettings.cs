@@ -28,7 +28,10 @@ public sealed record KebuzSettings(
     bool FollowLargerWindow = false,
     bool CheckUpdates = true,
     string? SkippedVersion = null,
-    string UiLanguage = Localization.Strings.System)
+    string UiLanguage = Localization.Strings.System,
+    bool ManualControl = false,
+    ManualRecordingSettings? Manual = null,
+    string? ControlHotkey = null)
 {
     public static KebuzSettings Default { get; } = new(
         QualityPresets.Default,
@@ -75,7 +78,10 @@ public sealed record KebuzSettings(
             FollowLargerWindow = false,
             CheckUpdates = true,
             SkippedVersion = null,
-            UiLanguage = Localization.Strings.System
+            UiLanguage = Localization.Strings.System,
+            ManualControl = false,
+            Manual = null,
+            ControlHotkey = null
         };
     }
 
@@ -143,6 +149,8 @@ public static class SettingsStore
             ? settings.MergeMaxSeconds
             : KebuzSettings.Default.MergeMaxSeconds;
 
+        var manual = settings.Manual ?? ManualRecordingSettings.From(settings);
+        var manualCommon = manual.Apply(settings);
         return settings with
         {
             BufferSeconds = settings.BufferSeconds > 0
@@ -169,7 +177,21 @@ public static class SettingsStore
             UiLanguage = settings.UiLanguage is Localization.Strings.RussianCode or Localization.Strings.EnglishCode
                 ? settings.UiLanguage
                 : Localization.Strings.System,
-            Audio = (settings.Audio ?? AudioSettings.Default).Fix(AudioDevices.PerProcessSupported)
+            Audio = (settings.Audio ?? AudioSettings.Default).Fix(AudioDevices.PerProcessSupported),
+            ControlHotkey = !string.IsNullOrWhiteSpace(settings.ControlHotkey) && HotkeyRules.IsValid(settings.ControlHotkey)
+                ? settings.ControlHotkey : null,
+            Manual = manual with
+            {
+                Height = Math.Clamp(manual.Height, QualityPresets.MinHeight, QualityPresets.MaxHeight),
+                FrameRate = Math.Clamp(manual.FrameRate, QualityPresets.MinFrameRate, QualityPresets.MaxFrameRate),
+                BitrateKbps = Math.Clamp(manual.BitrateKbps, QualityPresets.MinBitrateKbps, QualityPresets.MaxBitrateKbps),
+                BufferSeconds = manual.BufferSeconds > 0 ? manual.BufferSeconds : 120,
+                MergeSeconds = manual.MergeSeconds > 0 ? manual.MergeSeconds : 8,
+                MergeMaxSeconds = Math.Max(manual.MergeSeconds > 0 ? manual.MergeSeconds : 8,
+                    manual.MergeMaxSeconds > 0 ? manual.MergeMaxSeconds : 20),
+                Audio = (manualCommon.Audio ?? AudioSettings.Default).Fix(AudioDevices.PerProcessSupported),
+                Method = Enum.IsDefined(manual.Method) ? manual.Method : RecordingMethod.Buffer
+            }
         };
     }
 }

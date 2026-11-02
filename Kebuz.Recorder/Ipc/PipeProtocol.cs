@@ -14,6 +14,10 @@ public static class PipeMessages
     public const string RecorderRestarted = "RecorderRestarted";
     public const string CaptureRecovered = "CaptureRecovered";
     public const string MarkClip = "MarkClip";
+    public const string RecordingCommand = "RecordingCommand";
+    public const string RecordingControlState = "RecordingControlState";
+    public const string CaptureSources = "CaptureSources";
+    public const string ControlHotkeyChanged = "ControlHotkeyChanged";
     public const string ClipSaved = "ClipSaved";
     public const string RecordingStateChanged = "RecordingStateChanged";
     public const string BufferMemoryUsage = "BufferMemoryUsage";

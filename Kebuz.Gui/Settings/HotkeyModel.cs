@@ -30,7 +30,10 @@ public sealed class HotkeyModel : INotifyPropertyChanged
 
     public bool Editing => editing;
 
-    public string Text => editing ? Strings.Get("Settings.Hotkey.Press") : combination;
+    public string Text => editing ? Strings.Get("Settings.Hotkey.Press")
+        : string.IsNullOrWhiteSpace(combination) ? Strings.Get("Recording.Unassigned") : combination;
+    public string LabelKey { get; init; } = "Settings.Hotkey.Save";
+    public string Label => Strings.Get(LabelKey);
 
     public string Action => editing ? Strings.Get("Settings.Common.Cancel") : Strings.Get("Settings.Hotkey.Change");
 

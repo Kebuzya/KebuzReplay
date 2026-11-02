@@ -22,6 +22,8 @@ internal static class Supervisor
     private static PipeMessage? lastState;
     private static PipeMessage? lastHotkey;
     private static PipeMessage? lastShot;
+    private static PipeMessage? lastControl;
+    private static PipeMessage? lastControlHotkey;
     private static bool levelsWanted;
     private static Process? guiProcess;
     private static string? self;
@@ -252,6 +254,12 @@ internal static class Supervisor
 
     private static void PushToGui()
     {
+        PipeMessage? control;
+        PipeMessage? controlKey;
+        lock (gate) control = lastControl;
+        lock (gate) controlKey = lastControlHotkey;
+        if (control is not null) toGui?.Send(control);
+        if (controlKey is not null) toGui?.Send(controlKey);
         if (toGui?.Send(PipeMessages.UpdateSettings, Current()) is true)
         {
             Log.Trace("настройки отправлены GUI");
@@ -319,6 +327,17 @@ internal static class Supervisor
     {
         switch (message.Type)
         {
+            case PipeMessages.RecordingControlState:
+                lock (gate) lastControl = message;
+                toGui?.Forward(message);
+                return;
+            case PipeMessages.CaptureSources:
+                toGui?.Forward(message);
+                return;
+            case PipeMessages.ControlHotkeyChanged:
+                lock (gate) lastControlHotkey = message;
+                toGui?.Forward(message);
+                return;
             case PipeMessages.Ready:
                 recorder?.NoteReady();
                 Log.Report("Recorder подключился по трубе и готов");
@@ -382,6 +401,9 @@ internal static class Supervisor
     {
         switch (message.Type)
         {
+            case PipeMessages.RecordingCommand:
+                toRecorder?.Send(message);
+                return;
             case PipeMessages.Shutdown:
                 Log.Report("GUI попросил завершить работу");
                 finish.Set();

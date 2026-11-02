@@ -28,6 +28,7 @@ public sealed class CaptureCard
     public string Window { get; }
 
     public string Game => Window;
+    public string DisplayGame => Window;
 
     public static CaptureCard From(CaptureShot shot)
     {

@@ -24,7 +24,8 @@ public sealed record RecordingState(
     double BufferSeconds = 0,
     string? Hotkey = null,
     string? Capture = null,
-    bool SettingsPending = false)
+    bool SettingsPending = false,
+    bool Continuous = false)
 {
     public const string BorderlessNote = "Capture.Borderless";
     public const string BorderlessFailedNote = "Capture.BorderlessFailed";

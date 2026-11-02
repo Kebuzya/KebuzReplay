@@ -102,6 +102,19 @@ public sealed class SoundModel : INotifyPropertyChanged, ISection
     private double gameLevel = AudioSettings.Default.GameLevel;
     private double microphoneLevel = AudioSettings.Default.MicrophoneLevel;
     private bool gameSound = AudioSettings.Default.GameSound;
+    private bool gameSourceAvailable = true;
+    private bool manualSource;
+
+    public bool GameSourceAvailable => gameSourceAvailable;
+    public string GameSourceTitle => Strings.Get(manualSource ? "Recording.ApplicationAudio" : "Settings.Sound.GameSound");
+
+    public void SetGameSource(bool available)
+    {
+        manualSource = true;
+        gameSourceAvailable = available;
+        Raise(nameof(GameSourceAvailable));
+        Raise(nameof(GameSourceTitle));
+    }
     private bool microphone = AudioSettings.Default.Microphone;
     private bool noiseSuppression = AudioSettings.Default.NoiseSuppression;
     private string? complaint;

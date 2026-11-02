@@ -34,6 +34,8 @@ public sealed class QualityModel : INotifyPropertyChanged, ISection
     public KebuzSettings Effective => effective();
 
     public QualityPreset Preset => preset;
+    public bool AllowCaptureMode { get; init; } = true;
+    public bool HasSample => Sample is not null;
 
     public uint Height => (uint)Math.Round(height);
 

@@ -16,6 +16,14 @@ MFShutdown
 MFCreateAttributes
 MFCreateDXGIDeviceManager
 MFCreateSinkWriterFromURL
+MFCreateFMPEG4MediaSink
+MFCreateSinkWriterFromMediaSink
+MFCreateSourceReaderFromURL
+MFCreateFile
+MFSampleExtension_DecodeTimestamp
+EnumDisplayMonitors
+EnumDisplayDevicesW
+MONITORINFOEXW
 MFCreateMediaType
 MFCreateSample
 MFCreateMemoryBuffer

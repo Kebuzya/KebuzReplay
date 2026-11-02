@@ -389,6 +389,16 @@ public sealed class SettingsModel : INotifyPropertyChanged, ISection
         Send(Compose());
     }
 
+    public void UpdateRecording(KebuzSettings next)
+    {
+        Send(Compose() with
+        {
+            ManualControl = next.ManualControl,
+            Manual = next.Manual,
+            ControlHotkey = next.ControlHotkey
+        });
+    }
+
     public void Relocate(string root)
     {
         if (string.IsNullOrWhiteSpace(root))

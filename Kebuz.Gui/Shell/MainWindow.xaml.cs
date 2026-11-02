@@ -27,6 +27,7 @@ public partial class MainWindow : Window
     private readonly AppLink? link;
     private readonly SettingsModel settings;
     private readonly GalleryModel gallery;
+    private readonly RecordingPanelModel recording;
     private readonly UpdateModel updates = new();
     private readonly DispatcherTimer updateTimer = new() { Interval = UpdateInterval };
 
@@ -50,6 +51,10 @@ public partial class MainWindow : Window
 
         settings = new SettingsModel(link);
         gallery = new GalleryModel();
+        recording = new RecordingPanelModel(settings.UpdateRecording,
+            command => link?.Send(PipeMessages.RecordingCommand, command));
+        GalleryScreen.SetRecordingControl(recording);
+        recording.PropertyChanged += (_, _) => WatchLevels();
 
         SettingsScreen.DataContext = settings;
         GalleryScreen.DataContext = gallery;
@@ -74,6 +79,17 @@ public partial class MainWindow : Window
         }
 
         link.RecorderRestarted += reason => Dispatcher.Invoke(() => gallery.NoteRestart(reason));
+        link.RecordingControlChanged += next => Dispatcher.Invoke(() =>
+        {
+            recording.SetState(next);
+            if (next.StopConfirmation)
+            {
+                ShowFromTray();
+                GalleryTab.IsChecked = true;
+            }
+        });
+        link.CaptureSourcesChanged += next => Dispatcher.Invoke(() => recording.SetSources(next));
+        link.ControlHotkeyChanged += next => Dispatcher.Invoke(() => recording.NoteHotkey(next));
         link.CaptureRecovered += reason => Dispatcher.Invoke(() => gallery.NoteRecovery(reason));
         link.ClipSaved += entry => Dispatcher.Invoke(() => gallery.Add(entry));
         link.RecordingStateChanged += state => Dispatcher.Invoke(() =>
@@ -88,8 +104,12 @@ public partial class MainWindow : Window
         link.CaptureShown += shot => Dispatcher.Invoke(() => OnCaptureShown(shot));
         link.ShowRequested += () => Dispatcher.Invoke(ShowFromTray);
         SettingsScreen.IsVisibleChanged += (_, _) => WatchLevels();
+        GalleryScreen.IsVisibleChanged += (_, _) => WatchLevels();
         link.WhenSettings(next => Dispatcher.Invoke(() => Adopt(next)));
         link.WhenHotkey(state => Dispatcher.Invoke(() => OnHotkeyChanged(state)));
+        if (link.RecordingSnapshot is { } control) recording.SetState(control);
+        if (link.ControlKeySnapshot is { } controlKey) recording.NoteHotkey(controlKey);
+        recording.RefreshSources();
     }
 
     private void Adopt(KebuzSettings next)
@@ -102,6 +122,7 @@ public partial class MainWindow : Window
     {
         Strings.Use(Strings.Resolve(next.UiLanguage));
         gallery.Adopt(next);
+        recording.Adopt(next);
         updates.Adopt(next.CheckUpdates, next.SkippedVersion);
 
         if (link is not null && next.CheckUpdates && !updateChecked)
@@ -166,11 +187,13 @@ public partial class MainWindow : Window
 
         settings.Sound.Meter(levels);
         settings.Profile?.Sound.Meter(levels);
+        recording.Sound.Meter(levels);
     }
 
     private void WatchLevels()
     {
-        var wanted = link is not null && SettingsScreen.IsVisible && WindowState != WindowState.Minimized;
+        var wanted = link is not null && WindowState != WindowState.Minimized
+            && (SettingsScreen.IsVisible || GalleryScreen.IsVisible && recording.ShowSettings && recording.IsManual);
 
         if (wanted == levelsWatched)
         {
@@ -185,6 +208,7 @@ public partial class MainWindow : Window
             var silence = new AudioLevels([], 0, 0, false, false);
             settings.Sound.Meter(silence);
             settings.Profile?.Sound.Meter(silence);
+            recording.Sound.Meter(silence);
         }
     }
 
@@ -386,6 +410,7 @@ public partial class MainWindow : Window
         tray.Foreground();
 
         var menu = (ContextMenu)FindResource("TrayContextMenu");
+        menu.DataContext = recording;
         menu.Placement = PlacementMode.AbsolutePoint;
         menu.HorizontalOffset = point.X;
         menu.VerticalOffset = point.Y;
@@ -396,6 +421,9 @@ public partial class MainWindow : Window
     {
         ShowFromTray();
     }
+
+    private void OnTrayRecording(object sender, RoutedEventArgs e) => recording.Toggle();
+    private void OnTraySaveReplay(object sender, RoutedEventArgs e) => OnMarkRequested();
 
     private void OnTrayExit(object sender, RoutedEventArgs e)
     {

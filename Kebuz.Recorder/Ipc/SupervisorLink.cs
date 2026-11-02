@@ -18,6 +18,7 @@ public sealed class SupervisorLink : IDisposable
     private Action? markClip;
     private Action<bool>? levelWatch;
     private Action? applyNow;
+    private Action<RecordingCommand>? recordingCommand;
     private bool levelsWanted;
     private KebuzSettings? settings;
     private KebuzSettings? handed;
@@ -109,6 +110,11 @@ public sealed class SupervisorLink : IDisposable
         {
             applyNow = action;
         }
+    }
+
+    public void WhenRecordingCommand(Action<RecordingCommand> action)
+    {
+        lock (gate) recordingCommand = action;
     }
 
     public void WhenLevelWatch(Action<bool> action)
@@ -204,6 +210,11 @@ public sealed class SupervisorLink : IDisposable
 
                 switch (message.Type)
                 {
+                    case PipeMessages.RecordingCommand:
+                        Action<RecordingCommand>? control;
+                        lock (gate) control = recordingCommand;
+                        if (PipeProtocol.Unpack<RecordingCommand>(message) is { } command) control?.Invoke(command);
+                        break;
                     case PipeMessages.Shutdown:
                         Signal();
                         break;

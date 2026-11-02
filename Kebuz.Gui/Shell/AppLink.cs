@@ -69,6 +69,13 @@ public sealed class AppLink : IDisposable
     public event Action<ClipEntry>? ClipSaved;
 
     public event Action<RecordingState>? RecordingStateChanged;
+    public event Action<RecordingControlState>? RecordingControlChanged;
+    public event Action<CaptureSourceList>? CaptureSourcesChanged;
+    public event Action<HotkeyState>? ControlHotkeyChanged;
+    private RecordingControlState? recordingSnapshot;
+    private HotkeyState? controlKeySnapshot;
+    public RecordingControlState? RecordingSnapshot { get { lock (gate) return recordingSnapshot; } }
+    public HotkeyState? ControlKeySnapshot { get { lock (gate) return controlKeySnapshot; } }
 
     public event Action<long>? BufferMemoryUsage;
 
@@ -188,6 +195,23 @@ public sealed class AppLink : IDisposable
     {
         switch (message.Type)
         {
+            case PipeMessages.RecordingControlState:
+                if (PipeProtocol.Unpack<RecordingControlState>(message) is { } control)
+                {
+                    lock (gate) recordingSnapshot = control;
+                    RecordingControlChanged?.Invoke(control);
+                }
+                break;
+            case PipeMessages.CaptureSources:
+                if (PipeProtocol.Unpack<CaptureSourceList>(message) is { } sources) CaptureSourcesChanged?.Invoke(sources);
+                break;
+            case PipeMessages.ControlHotkeyChanged:
+                if (PipeProtocol.Unpack<HotkeyState>(message) is { } controlKey)
+                {
+                    lock (gate) controlKeySnapshot = controlKey;
+                    ControlHotkeyChanged?.Invoke(controlKey);
+                }
+                break;
             case PipeMessages.UpdateSettings:
                 if (PipeProtocol.Unpack<KebuzSettings>(message) is { } settings)
                 {

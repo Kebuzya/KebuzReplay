@@ -51,7 +51,7 @@
                            TextTrimming="CharacterEllipsis"
                            Foreground="{StaticResource TextBrush}" />
                 <TextBlock Margin="0,5,0,0"
-                           Text="{Binding Game}"
+                           Text="{Binding DisplayGame}"
                            TextTrimming="CharacterEllipsis"
                            FontSize="{StaticResource SmallSize}"
                            Foreground="{StaticResource MutedBrush}" />

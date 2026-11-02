@@ -25,7 +25,8 @@ internal sealed record WatchRequest(
     Action<Action<bool>>? LevelWatch = null,
     bool MeterAlways = false,
     Action<Action>? ApplyNow = null,
-    string? ShotOut = null);
+    string? ShotOut = null,
+    Action<Action<RecordingCommand>>? RecordingControl = null);
 
 internal static class WatchHost
 {
@@ -107,7 +108,11 @@ internal static class WatchHost
             publish(PipeMessages.AudioLevels, levels);
         });
 
-        var preview = new AudioPreview(request.Video.Audio ?? AudioTrackSettings.Of(AudioSettings.Default), trace);
+        AudioTrackSettings PreviewSettings(KebuzSettings? next) => next?.ManualControl == true
+            ? AudioTrackSettings.Of((next.Manual ?? ManualRecordingSettings.From(next)).Audio)
+            : next is not null ? AudioTrackSettings.Of(next.Audio)
+            : request.Video.Audio ?? AudioTrackSettings.Of(AudioSettings.Default);
+        var preview = new AudioPreview(PreviewSettings(request.Common), trace);
 
         void Levels(bool on)
         {
@@ -191,7 +196,8 @@ internal static class WatchHost
             _ => exit.Set(),
             Session,
             game => publish(PipeMessages.GameDetected, game),
-            shot => Shown(shot));
+            shot => Shown(shot),
+            publish);
 
         void Shown(CaptureShot shot)
         {
@@ -224,16 +230,33 @@ internal static class WatchHost
 
         hotkey = new GlobalHotkey(request.Hotkey, director.Trigger, Bound);
 
+        GlobalHotkey? controlHotkey = null;
+        string? controlCombination = null;
+        void BindControl(string? combination)
+        {
+            if (controlCombination == combination) return;
+            controlHotkey?.Dispose();
+            controlHotkey = null;
+            controlCombination = combination;
+            if (string.IsNullOrWhiteSpace(combination)) return;
+            controlHotkey = new GlobalHotkey(Hotkey.Parse(combination),
+                () => director.Control(new RecordingCommand("toggle")),
+                (key, complaint) => publish(PipeMessages.ControlHotkeyChanged,
+                    new HotkeyState(key.ToString(), complaint is null, complaint)));
+        }
+        BindControl(request.Common?.ControlHotkey);
+
         Rebind();
 
         request.SettingsChanged?.Invoke(next =>
         {
+            BindControl(next.ControlHotkey);
             director.Apply(
                 request.Settings with { ClipsRoot = next.EffectiveClipsRoot },
                 request.Video.Apply(next),
                 next);
 
-            preview.Apply(request.Video.Apply(next).Audio ?? AudioTrackSettings.Of(AudioSettings.Default));
+            preview.Apply(PreviewSettings(next));
 
             Log.Report($"Новые настройки приняты, запись со следующей сессии: {next}");
 
@@ -256,6 +279,7 @@ internal static class WatchHost
         request.ExternalMark?.Invoke(director.Trigger);
         request.LevelWatch?.Invoke(Levels);
         request.ApplyNow?.Invoke(director.ApplyNow);
+        request.RecordingControl?.Invoke(director.Control);
 
         if (request.MeterAlways)
         {
@@ -285,6 +309,7 @@ internal static class WatchHost
         }
 
         hotkey.Dispose();
+        controlHotkey?.Dispose();
         preview.Dispose();
         director.Dispose();
         AudioMeter.Watch(false);

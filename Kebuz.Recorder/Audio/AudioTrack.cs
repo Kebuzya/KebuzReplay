@@ -18,6 +18,8 @@ internal sealed class AudioTrack : IDisposable
     private bool finished;
     private bool disposed;
 
+    public AudioFrameHandler? Encoded { get; set; }
+
     private AudioTrack(
         List<AudioSource> sources,
         AudioEncoder encoder,
@@ -97,12 +99,22 @@ internal sealed class AudioTrack : IDisposable
                 bufferLength,
                 mergeMaxLength));
 
-            encoder = new AudioEncoder((payload, time, duration) => ring.Append(payload, time, duration));
+            AudioTrack? owner = null;
+            encoder = new AudioEncoder((payload, time, duration) =>
+            {
+                ring.Append(payload, time, duration);
+                if (owner is not null && Volatile.Read(ref owner.anchored))
+                {
+                    var shifted = time + Volatile.Read(ref owner.shift);
+                    if (shifted >= 0) owner.Encoded?.Invoke(payload, shifted, duration);
+                }
+            });
 
             mixer = new AudioMixer(new AudioMixRequest(Qpc.Ticks(), sources, encoder.Write, trace));
+            owner = new AudioTrack(sources, encoder, mixer, ring, trace, game);
             mixer.Start();
 
-            return new AudioTrack(sources, encoder, mixer, ring, trace, game);
+            return owner;
         }
         catch (Exception ex)
         {

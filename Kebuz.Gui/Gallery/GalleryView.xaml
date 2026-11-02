@@ -55,7 +55,7 @@
             <Setter Property="Margin" Value="0,0,9,0" />
             <Setter Property="Fill" Value="{StaticResource EdgeBrush}" />
             <Style.Triggers>
-                <DataTrigger Binding="{Binding CanMark}" Value="True">
+                <DataTrigger Binding="{Binding IsRecording}" Value="True">
                     <Setter Property="Fill" Value="{StaticResource AccentBrush}" />
                 </DataTrigger>
             </Style.Triggers>
@@ -176,6 +176,8 @@
                                FontSize="{StaticResource SmallSize}"
                                Foreground="{StaticResource MutedBrush}" />
                 </StackPanel>
+                <TextBlock Text="{Binding SourceText}" Margin="0,0,0,6" Style="{StaticResource SmallMutedText}"
+                           Visibility="{Binding HasSource, Converter={StaticResource ShowWhenTrue}}" />
                 <ItemsControl ItemsSource="{Binding Clips}" Style="{StaticResource ClipsHost}" />
             </StackPanel>
         </DataTemplate>
@@ -228,7 +230,7 @@
                                    FontSize="{StaticResource SmallSize}"
                                    Foreground="{StaticResource MutedBrush}"
                                    Style="{StaticResource FoldGlyph}" />
-                        <TextBlock Text="{Binding Title}"
+                        <TextBlock Text="{Binding DisplayTitle}"
                                    VerticalAlignment="Center"
                                    FontSize="{StaticResource TitleSize}"
                                    FontWeight="Bold"
@@ -548,7 +550,9 @@
             </Popup>
         </Grid>
 
-        <Border Grid.Row="2"
+        <StackPanel Grid.Row="2">
+        <gallery:RecordingPanel x:Name="RecordingControls" />
+        <Border
                 Height="27"
                 Background="{StaticResource PanelBrush}"
                 BorderBrush="{StaticResource EdgeBrush}"
@@ -606,5 +610,6 @@
                            Style="{StaticResource SmallMutedText}" />
             </Grid>
         </Border>
+        </StackPanel>
     </Grid>
 </UserControl>

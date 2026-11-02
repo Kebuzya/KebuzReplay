@@ -26,12 +26,15 @@ public sealed partial class ClipItem : INotifyPropertyChanged
         Path = entry.Path;
         FileName = System.IO.Path.GetFileName(entry.Path);
         Game = entry.Game;
+        var metadata = Kebuz.Recorder.Watching.SessionMetadata.Read(System.IO.Path.GetDirectoryName(entry.Path));
+        IsDesktop = metadata?.Source.Kind == CaptureSourceKind.Monitor;
         Session = entry.Session;
         When = entry.When;
         Length = entry.Duration;
         SizeBytes = entry.SizeBytes;
         WithoutMicrophone = entry.WithoutMicrophone;
-        Output = output;
+        Output = metadata is { Width: > 0, Height: > 0, FrameRate: > 0 }
+            ? $"{metadata.Width}x{metadata.Height}@{metadata.FrameRate}" : output;
         IsCut = CutName().IsMatch(System.IO.Path.GetFileNameWithoutExtension(entry.Path));
 
         foreach (var tag in tags)
@@ -49,6 +52,8 @@ public sealed partial class ClipItem : INotifyPropertyChanged
     public string FileName { get; }
 
     public string Game { get; }
+    public bool IsDesktop { get; }
+    public string DisplayGame => IsDesktop ? Strings.Get("Recording.Desktop") : Game;
 
     public string Session { get; }
 
@@ -128,17 +133,17 @@ public sealed partial class ClipItem : INotifyPropertyChanged
 
     public string SizeText => Sizes.Format(SizeBytes);
 
-    public string HeadlineText => $"{Game} · {Time} · {Output}";
+    public string HeadlineText => $"{DisplayGame} · {Time} · {Output}";
 
     public string DetailsText => $"{SizeText} · {Session}";
 
     public string AccessibleName => IsCut
-        ? Strings.Format("Gallery.Accessible.Cut", Game, Duration, Time)
-        : Strings.Format("Gallery.Accessible.Clip", Game, Duration, Time);
+        ? Strings.Format("Gallery.Accessible.Cut", DisplayGame, Duration, Time)
+        : Strings.Format("Gallery.Accessible.Clip", DisplayGame, Duration, Time);
 
     public bool Matches(string text)
     {
-        if (Game.Contains(text, StringComparison.OrdinalIgnoreCase)
+        if (DisplayGame.Contains(text, StringComparison.OrdinalIgnoreCase) || Game.Contains(text, StringComparison.OrdinalIgnoreCase)
             || Session.Contains(text, StringComparison.OrdinalIgnoreCase)
             || FileName.Contains(text, StringComparison.OrdinalIgnoreCase))
         {
@@ -292,6 +297,7 @@ public sealed class SessionGroup : INotifyPropertyChanged
     {
         Folder = folder;
         Started = started;
+        source = Kebuz.Recorder.Watching.SessionMetadata.Read(folder)?.Source;
         Clips.CollectionChanged += (_, _) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ClipCountText)));
         Loc.Track(this, static owner => ((SessionGroup)owner).Relocalize());
     }
@@ -299,6 +305,12 @@ public sealed class SessionGroup : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public string Folder { get; }
+
+    private readonly CaptureSource? source;
+    public bool HasSource => source is not null;
+    public string SourceText => source is null ? string.Empty
+        : Strings.Format("Recording.SourceDescription", Strings.Get(source.Kind == CaptureSourceKind.Monitor
+            ? "Recording.Monitor" : "Recording.Window"), source.Title, source.Width, source.Height);
 
     public DateTime Started { get; }
 
@@ -328,12 +340,29 @@ public sealed class GameGroup : INotifyPropertyChanged
     {
         Title = title;
         this.latest = latest;
+        Sessions.CollectionChanged += (_, change) =>
+        {
+            if (change.NewItems is not null)
+                foreach (SessionGroup session in change.NewItems) session.Clips.CollectionChanged += OnClipsChanged;
+            if (change.OldItems is not null)
+                foreach (SessionGroup session in change.OldItems) session.Clips.CollectionChanged -= OnClipsChanged;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayTitle)));
+        };
         Loc.Track(this, static owner => ((GameGroup)owner).Relocalize());
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public string Title { get; }
+
+    public string DisplayTitle => Sessions.SelectMany(session => session.Clips).Any(clip => clip.IsDesktop)
+        ? Strings.Get("Recording.Desktop") : Title;
+
+    private void OnClipsChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs args)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayTitle)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(FoldName)));
+    }
 
     public DateTime Latest => latest;
 
@@ -357,7 +386,7 @@ public sealed class GameGroup : INotifyPropertyChanged
         }
     }
 
-    public string FoldName => collapsed ? Strings.Format("Gallery.Expand", Title) : Strings.Format("Gallery.Collapse", Title);
+    public string FoldName => collapsed ? Strings.Format("Gallery.Expand", DisplayTitle) : Strings.Format("Gallery.Collapse", DisplayTitle);
 
     public void Note(DateTime when)
     {
@@ -512,7 +541,9 @@ public sealed class GalleryModel : INotifyPropertyChanged, IDisposable
         }
     }
 
-    public bool CanMark => recording;
+    private bool continuousRecording;
+    public bool IsRecording => recording;
+    public bool CanMark => recording && !continuousRecording;
 
     public CaptureCard? RecordingCard => recordingCard;
 
@@ -698,8 +729,10 @@ public sealed class GalleryModel : INotifyPropertyChanged, IDisposable
             var combination = sessionHotkey is null ? string.Empty : $" · {sessionHotkey}";
             var capture = captureNote is null ? string.Empty : $" · {Strings.Render(captureNote)}";
             var window = recordingCard is null ? string.Empty : " · " + Strings.Format("Status.Window", recordingCard.Window);
-
-            return Strings.Format("Status.Recording", game ?? Strings.Get("Status.UnknownGame"), profile, window, buffer, combination, capture, memory, tail);
+            var gameName = Strings.KeyOf(captureNote) == "Recording.Monitor" ? Strings.Get("Recording.Desktop")
+                : game ?? Strings.Get("Status.UnknownGame");
+            if (continuousRecording) return Strings.Format("Recording.ActiveSource", gameName, capture, tail);
+            return Strings.Format("Status.Recording", gameName, profile, window, buffer, combination, capture, memory, tail);
         }
     }
 
@@ -821,6 +854,7 @@ public sealed class GalleryModel : INotifyPropertyChanged, IDisposable
 
     public void SetRecording(RecordingState state)
     {
+        continuousRecording = state.Continuous;
         recording = state.Recording;
         game = state.Game;
         profiled = state.Profiled;
@@ -841,6 +875,7 @@ public sealed class GalleryModel : INotifyPropertyChanged, IDisposable
 
         Raise(nameof(RecordingText));
         Raise(nameof(CanMark));
+        Raise(nameof(IsRecording));
         Raise(nameof(CanApplyNow));
         Raise(nameof(ApplyText));
         Raise(nameof(ApplyHint));
@@ -1961,7 +1996,8 @@ public sealed class GalleryModel : INotifyPropertyChanged, IDisposable
         {
             if (seen.Add(item.Game))
             {
-                games.Add(new FilterOption(item.Game, item.Game));
+                games.Add(item.IsDesktop ? new FilterOption(item.Game, "Recording.Desktop", true)
+                    : new FilterOption(item.Game, item.Game));
             }
         }
 

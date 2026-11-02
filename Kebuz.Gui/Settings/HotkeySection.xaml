@@ -14,7 +14,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" Text="{l:T Settings.Hotkey.Save}" Style="{StaticResource FieldLabel}" />
+            <TextBlock Grid.Column="0" Text="{Binding Label}" Style="{StaticResource FieldLabel}" />
             <TextBlock Grid.Column="1"
                        Text="{Binding Text}"
                        VerticalAlignment="Center"

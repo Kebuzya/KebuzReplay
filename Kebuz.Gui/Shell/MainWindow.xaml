@@ -33,6 +33,10 @@
         <BooleanToVisibilityConverter x:Key="ShowWhenTrue" />
 
         <ContextMenu x:Key="TrayContextMenu" Style="{StaticResource TrayMenu}">
+            <MenuItem Header="{Binding StatusText}" IsEnabled="False" />
+            <MenuItem Header="{Binding ButtonText}" IsEnabled="{Binding CanStartStop}" Click="OnTrayRecording" />
+            <MenuItem Header="{l:T Gallery.SaveReplay}" IsEnabled="{Binding CanSaveReplay}" Click="OnTraySaveReplay" />
+            <Separator />
             <MenuItem Header="{l:T Tray.Open}" Click="OnTrayOpen" />
             <MenuItem Header="{l:T Tray.Exit}" Click="OnTrayExit" />
         </ContextMenu>

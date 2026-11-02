@@ -10,6 +10,7 @@ namespace Kebuz.Gui.Gallery;
 
 public partial class GalleryView : UserControl
 {
+    public void SetRecordingControl(RecordingPanelModel model) => RecordingControls.DataContext = model;
     private PlayerModel? player;
     private FullScreenWindow? theatre;
     private bool drawing;
