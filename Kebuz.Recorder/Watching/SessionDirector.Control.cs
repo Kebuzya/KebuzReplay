@@ -47,6 +47,7 @@ internal sealed partial class SessionDirector
             lastManualMode = manual;
             stopConfirmation = false;
             controlError = null;
+            if (manual) ReturnCommonHotkey();
             PublishControl(true);
         }
         while (true)
@@ -145,6 +146,12 @@ internal sealed partial class SessionDirector
         targetApp = null;
         folder = null;
         folderApp = null;
+        ReturnCommonHotkey();
+    }
+
+    private void ReturnCommonHotkey()
+    {
+        boundHotkey = null;
         rebind(null);
     }
 
