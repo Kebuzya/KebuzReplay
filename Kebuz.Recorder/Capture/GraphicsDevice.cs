@@ -73,6 +73,16 @@ internal sealed class GraphicsDevice : IDisposable
 
     public static GraphicsDevice Create(TimeSpan simulateLossAfter = default)
     {
+        return Create(null, simulateLossAfter);
+    }
+
+    public static GraphicsDevice Create(IDXGIAdapter adapter)
+    {
+        return Create(adapter, default);
+    }
+
+    private static GraphicsDevice Create(IDXGIAdapter? adapter, TimeSpan simulateLossAfter)
+    {
         ReadOnlySpan<D3D_FEATURE_LEVEL> featureLevels =
         [
             D3D_FEATURE_LEVEL.D3D_FEATURE_LEVEL_11_1,
@@ -85,8 +95,8 @@ internal sealed class GraphicsDevice : IDisposable
             D3D11_CREATE_DEVICE_FLAG.D3D11_CREATE_DEVICE_VIDEO_SUPPORT;
 
         PInvoke.D3D11CreateDevice(
-            null,
-            D3D_DRIVER_TYPE.D3D_DRIVER_TYPE_HARDWARE,
+            adapter,
+            adapter is null ? D3D_DRIVER_TYPE.D3D_DRIVER_TYPE_HARDWARE : D3D_DRIVER_TYPE.D3D_DRIVER_TYPE_UNKNOWN,
             HMODULE.Null,
             flags,
             featureLevels,

@@ -203,7 +203,8 @@ public static class RecorderHost
                     options.FailRestarts,
                     options.KeepAfterExitSeconds is { } keep ? TimeSpan.FromSeconds(keep) : null,
                     TimeSpan.FromSeconds(options.MarkSeconds),
-                    options.FollowLarger ? true : null),
+                    options.FollowLarger ? true : null,
+                    options.FailStarts),
                 applied is null ? video : video.Apply(applied),
                 applied,
                 Hotkey.Parse(applied?.Hotkey ?? options.Hotkey),
@@ -410,7 +411,8 @@ internal sealed record CommandLineOptions(
     string? ShotOut = null,
     double? KeepAfterExitSeconds = null,
     bool FollowLarger = false,
-    string? SampleOut = null);
+    string? SampleOut = null,
+    int FailStarts = 0);
 
 internal static class CommandLine
 {
@@ -462,6 +464,7 @@ internal static class CommandLine
         var failDeviceSeconds = 0d;
         var failDeviceTimes = 1;
         var failRestarts = 0;
+        var failStarts = 0;
         string? clipsRoot = null;
         string? addApp = null;
         string? removeApp = null;
@@ -595,6 +598,9 @@ internal static class CommandLine
                 case "--fail-restarts":
                     failRestarts = int.Parse(Next(args, ref i));
                     break;
+                case "--fail-starts":
+                    failStarts = int.Parse(Next(args, ref i));
+                    break;
                 case "--segment-seconds":
                     segmentSeconds = Number(Next(args, ref i));
                     break;
@@ -713,7 +719,8 @@ internal static class CommandLine
             shotOut,
             keepAfterExit,
             followLarger,
-            sampleOut);
+            sampleOut,
+            failStarts);
     }
 
     private static void Level(Dictionary<string, int> levels, string pair)

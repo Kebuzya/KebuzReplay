@@ -18,7 +18,8 @@ internal static class CaptureProbe
         var first = TimeSpan.Zero;
         var last = TimeSpan.Zero;
 
-        using var capture = new FrameCapture(device, item, frame =>
+        using var capture = new FrameCapture(device, item);
+        capture.Start(frame =>
         {
             if (frames == 0)
             {
@@ -32,8 +33,6 @@ internal static class CaptureProbe
             last = frame.Timestamp;
             frames++;
         });
-
-        capture.Start();
         Thread.Sleep(duration);
 
         var span = last - first;

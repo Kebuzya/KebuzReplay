@@ -50,7 +50,7 @@
                           AutomationProperties.Name="{l:T Recording.Unfinished}" />
                 <Button Content="{l:T Recording.Recover}" Click="OnRecover" Margin="8,0,0,0" Style="{StaticResource BracketButton}" />
             </WrapPanel>
-            <ScrollViewer MaxHeight="260" Margin="0,8,0,0" VerticalScrollBarVisibility="Auto"
+            <ScrollViewer MaxHeight="260" Margin="0,8,0,0" Style="{StaticResource ThinScrollViewer}"
                           Visibility="{Binding ShowSettings, Converter={StaticResource ShowWhenTrue}}"
                           AutomationProperties.AutomationId="ManualRecordingSettings">
                 <StackPanel>

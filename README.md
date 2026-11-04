@@ -34,6 +34,10 @@ The interface is in English and Russian: it follows the Windows language and can
 
 Put a game on the list once, and every launch of it starts a recording session; quitting the game ends it. A new game is noticed by itself: an application that covers the whole screen and loads the graphics card, or a window started from a Steam, Epic or GOG folder, gets one quiet question - record it or not.
 
+### Records a window or monitor on demand
+
+Switch the gallery panel to manual mode, choose any window or monitor, and start either a replay buffer or a continuous recording. Manual recording has its own quality, buffer, sound and hotkey settings. Monitor capture uses Desktop Duplication on Windows 10, so it does not draw the yellow WGC border; game capture keeps its existing path unchanged.
+
 ### One hotkey, one clip
 
 `Ctrl+Alt+R` by default saves the last part of the buffer, from 15 seconds to 5 minutes, as an mp4 with sound. Pressed again a few seconds later, it extends the same clip instead of making a second overlapping one, so three replays in a row become one file. A toast with a thumbnail tells you it is saved; a click on it opens the clip.

@@ -11,17 +11,16 @@ namespace Kebuz.Recorder.Capture;
 
 internal readonly record struct CapturedFrame(ID3D11Texture2D Texture, TimeSpan Timestamp, SizeInt32 ContentSize);
 
-internal sealed class FrameCapture : IDisposable
+internal sealed class FrameCapture : IFrameCapture
 {
     private readonly Direct3D11CaptureFramePool framePool;
     private readonly GraphicsCaptureSession session;
     private readonly GraphicsDevice device;
-    private readonly Action<CapturedFrame> onFrame;
+    private Action<CapturedFrame>? onFrame;
     private bool disposed;
 
-    public FrameCapture(GraphicsDevice device, GraphicsCaptureItem item, Action<CapturedFrame> onFrame)
+    public FrameCapture(GraphicsDevice device, GraphicsCaptureItem item)
     {
-        this.onFrame = onFrame;
         this.device = device;
         Size = item.Size;
 
@@ -39,8 +38,11 @@ internal sealed class FrameCapture : IDisposable
 
     public string Border { get; }
 
-    public void Start()
+    public Exception? Failure => null;
+
+    public void Start(Action<CapturedFrame> handler)
     {
+        onFrame = handler;
         session.StartCapture();
     }
 
@@ -57,7 +59,7 @@ internal sealed class FrameCapture : IDisposable
 
         try
         {
-            onFrame(new CapturedFrame(texture, frame.SystemRelativeTime, frame.ContentSize));
+            onFrame?.Invoke(new CapturedFrame(texture, frame.SystemRelativeTime, frame.ContentSize));
         }
         finally
         {

@@ -42,7 +42,7 @@ internal sealed class CaptureRunner : IDisposable
     private readonly Lock feed = new();
     private readonly Lock gate = new();
 
-    private FrameCapture? capture;
+    private IFrameCapture? capture;
     private BlankCheck? blank;
     private Action<ShotImage>? shot;
     private int generation;
@@ -72,6 +72,15 @@ internal sealed class CaptureRunner : IDisposable
         GraphicsCaptureItem item,
         IVideoEncoder encoder,
         CaptureRequest request)
+        : this(device, new FrameCapture(device, item), encoder, request)
+    {
+    }
+
+    public CaptureRunner(
+        GraphicsDevice device,
+        IFrameCapture source,
+        IVideoEncoder encoder,
+        CaptureRequest request)
     {
         this.request = request;
         this.device = device;
@@ -82,11 +91,10 @@ internal sealed class CaptureRunner : IDisposable
         blank = request.WatchBlank ? new BlankCheck(device) : null;
         shot = request.Shot;
 
-        var own = generation;
-        capture = new FrameCapture(device, item, frame => Accept(own, frame));
+        capture = source;
     }
 
-    public Exception? Failure => pump.Failure;
+    public Exception? Failure => capture?.Failure ?? pump.Failure;
 
     public TimeSpan BlankFor
     {
@@ -103,12 +111,12 @@ internal sealed class CaptureRunner : IDisposable
     {
         request.Trace($"стартую захват, {capture?.Border}");
         stopwatch = Stopwatch.StartNew();
-        capture?.Start();
+        capture?.Start(frame => Accept(generation, frame));
     }
 
     public void Blackout()
     {
-        FrameCapture? old;
+        IFrameCapture? old;
         BlankCheck? oldBlank;
 
         lock (feed)
@@ -149,12 +157,13 @@ internal sealed class CaptureRunner : IDisposable
 
     public void Attach(GraphicsCaptureItem item, bool watchBlank, Action<ShotImage>? nextShotHandler)
     {
-        FrameCapture? old;
+        IFrameCapture? old;
         BlankCheck? oldBlank;
         Thread? dark;
         ManualResetEventSlim? darkStop;
-        FrameCapture fresh;
+        IFrameCapture fresh;
         int blackCount;
+        int own;
 
         lock (feed)
         {
@@ -163,7 +172,7 @@ internal sealed class CaptureRunner : IDisposable
                 return;
             }
 
-            var own = ++generation;
+            own = ++generation;
             old = capture;
             oldBlank = blank;
             dark = darkness;
@@ -172,7 +181,7 @@ internal sealed class CaptureRunner : IDisposable
             darknessStop = null;
             blackCount = blackFrames;
 
-            fresh = new FrameCapture(device, item, frame => Accept(own, frame));
+            fresh = new FrameCapture(device, item);
             capture = fresh;
             blank = watchBlank ? new BlankCheck(device) : null;
             shot = nextShotHandler;
@@ -193,7 +202,7 @@ internal sealed class CaptureRunner : IDisposable
         oldBlank?.Dispose();
 
         request.Trace($"захват окна снова идёт, чёрных кадров было {blackCount}, {fresh.Border}");
-        fresh.Start();
+        fresh.Start(frame => Accept(own, frame));
     }
 
     private void Darken(int own, ManualResetEventSlim stop)
@@ -476,7 +485,7 @@ internal sealed class CaptureRunner : IDisposable
 
     public CaptureResult Stop()
     {
-        FrameCapture? closing;
+        IFrameCapture? closing;
         Thread? dark;
         ManualResetEventSlim? darkStop;
 

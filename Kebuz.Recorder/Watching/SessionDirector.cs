@@ -16,7 +16,8 @@ internal sealed record WatchSettings(
     int FailRestarts = 0,
     TimeSpan? KeepAfterExit = null,
     TimeSpan MarkAt = default,
-    bool? FollowLarger = null);
+    bool? FollowLarger = null,
+    int FailStarts = 0);
 
 internal sealed partial class SessionDirector : IDisposable
 {
@@ -84,8 +85,10 @@ internal sealed partial class SessionDirector : IDisposable
     private RecordingState? lastState;
     private string? trouble;
     private long recoverySince;
+    private long startFailedSince;
     private int simulationsLeft;
     private int failedRestartsLeft;
+    private int failedStartsLeft;
     private WatchedApp? afterApp;
     private long afterSince;
     private TimeSpan afterLength;
@@ -601,6 +604,8 @@ internal sealed partial class SessionDirector : IDisposable
             candidateWindow = 0;
             candidateScans = 0;
             waitingSince = Stopwatch.GetTimestamp();
+            startFailedSince = 0;
+            failedStartsLeft = settings.FailStarts;
 
             if (folder is not null && folderApp is not null && !string.Equals(
                     folderApp.Executable,
@@ -751,6 +756,12 @@ internal sealed partial class SessionDirector : IDisposable
                 throw new InvalidOperationException("пересоздание устройства провалено намеренно");
             }
 
+            if (!recovering && failedStartsLeft > 0)
+            {
+                failedStartsLeft--;
+                throw new InvalidOperationException("старт записи провален намеренно");
+            }
+
             var simulate = TimeSpan.Zero;
 
             if (simulationsLeft > 0)
@@ -787,8 +798,23 @@ internal sealed partial class SessionDirector : IDisposable
                 return;
             }
 
+            if (startFailedSince == 0)
+            {
+                startFailedSince = Stopwatch.GetTimestamp();
+                report($"запись {targetApp!.Title} не стартовала: {ex.Message}, пробую снова {RecoveryDeadline.TotalSeconds:F0} с");
+                return;
+            }
+
+            var failedFor = Stopwatch.GetElapsedTime(startFailedSince);
+
+            if (failedFor <= RecoveryDeadline)
+            {
+                trace($"запись не стартовала ({ex.Message}), жду, прошло {failedFor.TotalSeconds:F0} с");
+                return;
+            }
+
             Interlocked.CompareExchange(ref failure, ex, null);
-            report($"запись {targetApp!.Title} не стартовала: {ex.Message}");
+            report($"запись {targetApp!.Title} не стартовала за {RecoveryDeadline.TotalSeconds:F0} с: {ex.Message}");
             abandonedId = targetId;
             targetApp = null;
             EndRun();
@@ -798,6 +824,12 @@ internal sealed partial class SessionDirector : IDisposable
         lock (gate)
         {
             session = started;
+        }
+
+        if (startFailedSince != 0)
+        {
+            report($"запись пошла после {Stopwatch.GetElapsedTime(startFailedSince).TotalSeconds:F0} с отказов старта");
+            startFailedSince = 0;
         }
 
         Interlocked.Increment(ref continuing ? ref restarts : ref sessions);

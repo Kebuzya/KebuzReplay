@@ -19,7 +19,8 @@ internal sealed class ManualSession : IDisposable
     private readonly ContinuousEncoder? continuous;
     private bool stopped;
     private bool disposed;
-    private readonly GraphicsCaptureItem item;
+    private readonly GraphicsCaptureItem? item;
+    private readonly DesktopCapture? desktop;
     private bool sourceClosed;
 
     public CaptureSource Source { get; }
@@ -45,15 +46,21 @@ internal sealed class ManualSession : IDisposable
         var folder = SessionPaths.SessionFolder(common.EffectiveClipsRoot, group, DateTime.Now);
         Folder = folder;
         for (var suffix = 2; Directory.Exists(Folder); suffix++) Folder = folder + "_" + suffix;
-        device = GraphicsDevice.Create();
+        if (source.Kind == CaptureSourceKind.Monitor)
+        {
+            desktop = DesktopCapture.Open((nint)source.Handle, out device);
+        }
+        else
+        {
+            device = GraphicsDevice.Create();
+            item = CaptureTarget.Window((nint)source.Handle);
+        }
         try
         {
             Directory.CreateDirectory(Folder);
-            item = source.Kind == CaptureSourceKind.Monitor
-                ? CaptureItemInterop.CreateForMonitor((nint)source.Handle)
-                : CaptureTarget.Window((nint)source.Handle);
-            item.Closed += OnSourceClosed;
-            var video = VideoEncoderSettings.Create((uint)item.Size.Width, (uint)item.Size.Height,
+            if (item is not null) item.Closed += OnSourceClosed;
+            var size = desktop?.Size ?? item!.Size;
+            var video = VideoEncoderSettings.Create((uint)size.Width, (uint)size.Height,
                 settings.Quality, settings.FrameRate, settings.BitrateBps);
             File.WriteAllText(Path.Combine(Folder, "session.json"), JsonSerializer.Serialize(
                 new SessionMetadata(source, DateTime.Now, manual.Method, video.Width, video.Height, video.FrameRate)));
@@ -74,7 +81,12 @@ internal sealed class ManualSession : IDisposable
                     (_, at) => SessionPaths.ClipPath(Folder, at), saved, trace);
                 encoder = buffer;
             }
-            runner = new CaptureRunner(device, item, encoder, new CaptureRequest(video.SourceWidth,
+            runner = desktop is not null
+                ? new CaptureRunner(device, desktop, encoder, new CaptureRequest(video.SourceWidth,
+                    video.SourceHeight, video.FrameRate, trace, false, shot => shown(new CaptureShot(group,
+                        source.Title, shot.SourceWidth, shot.SourceHeight, shot.Png, DateTime.UtcNow)),
+                    continuous is null ? null : TimeSpan.FromSeconds(20)))
+                : new CaptureRunner(device, item!, encoder, new CaptureRequest(video.SourceWidth,
                 video.SourceHeight, video.FrameRate, trace, false, shot => shown(new CaptureShot(group,
                     source.Title, shot.SourceWidth, shot.SourceHeight, shot.Png, DateTime.UtcNow)),
                 continuous is null ? null : TimeSpan.FromSeconds(20)));
@@ -83,6 +95,7 @@ internal sealed class ManualSession : IDisposable
         catch
         {
             if (item is not null) item.Closed -= OnSourceClosed;
+            desktop?.Dispose();
             scheduler?.Dispose();
             continuous?.Dispose();
             buffer?.Dispose();
@@ -118,7 +131,7 @@ internal sealed class ManualSession : IDisposable
     {
         if (disposed) return;
         disposed = true;
-        item.Closed -= OnSourceClosed;
+        if (item is not null) item.Closed -= OnSourceClosed;
         try { if (!stopped) Stop(false); }
         finally
         {

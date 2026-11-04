@@ -8,6 +8,8 @@ internal static class Qpc
 
     public static long Ticks()
     {
-        return (long)(Stopwatch.GetTimestamp() * Scale);
+        return FromTimestamp(Stopwatch.GetTimestamp());
     }
+
+    public static long FromTimestamp(long timestamp) => (long)(timestamp * Scale);
 }
