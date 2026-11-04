@@ -33,12 +33,12 @@
         <BooleanToVisibilityConverter x:Key="ShowWhenTrue" />
 
         <ContextMenu x:Key="TrayContextMenu" Style="{StaticResource TrayMenu}">
-            <MenuItem Header="{Binding StatusText}" IsEnabled="False" />
-            <MenuItem Header="{Binding ButtonText}" IsEnabled="{Binding CanStartStop}" Click="OnTrayRecording" />
-            <MenuItem Header="{l:T Gallery.SaveReplay}" IsEnabled="{Binding CanSaveReplay}" Click="OnTraySaveReplay" />
-            <Separator />
-            <MenuItem Header="{l:T Tray.Open}" Click="OnTrayOpen" />
-            <MenuItem Header="{l:T Tray.Exit}" Click="OnTrayExit" />
+            <MenuItem Header="{Binding StatusText}" IsEnabled="False" Style="{StaticResource TrayMenuItem}" />
+            <MenuItem Header="{Binding ButtonText}" IsEnabled="{Binding CanStartStop}" Click="OnTrayRecording" Style="{StaticResource TrayMenuItem}" />
+            <MenuItem Header="{l:T Gallery.SaveReplay}" IsEnabled="{Binding CanSaveReplay}" Click="OnTraySaveReplay" Style="{StaticResource TrayMenuItem}" />
+            <Separator Style="{StaticResource TrayMenuSeparator}" />
+            <MenuItem Header="{l:T Tray.Open}" Click="OnTrayOpen" Style="{StaticResource TrayMenuItem}" />
+            <MenuItem Header="{l:T Tray.Exit}" Click="OnTrayExit" Style="{StaticResource TrayMenuItem}" />
         </ContextMenu>
 
         <Style x:Key="MaximizeCaptionButton" TargetType="Button" BasedOn="{StaticResource CaptionButton}">
