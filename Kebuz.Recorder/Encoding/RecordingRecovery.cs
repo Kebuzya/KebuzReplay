@@ -113,7 +113,21 @@ public static class RecordingRecovery
         try
         {
             using var writer = new CompressedFileWriter(target, tracks.VideoType, tracks.AudioType, false);
-            Read(reader, tracks.Video, tracks.Audio, (isAudio, sample) => writer.Write(isAudio, sample));
+            long? videoTime = null;
+            Read(reader, tracks.Video, tracks.Audio, (isAudio, sample) =>
+            {
+                if (!isAudio)
+                {
+                    sample.GetSampleTime(out var time);
+                    if (videoTime is { } previous && time <= previous)
+                    {
+                        time = previous + 1;
+                        sample.SetSampleTime(time);
+                    }
+                    videoTime = time;
+                }
+                writer.Write(isAudio, sample);
+            });
             writer.Finish();
         }
         finally
