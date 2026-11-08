@@ -32,11 +32,13 @@ The interface is in English and Russian: it follows the Windows language and can
 
 ### Records without being asked
 
-Put a game on the list once, and every launch of it starts a recording session; quitting the game ends it. A new game is noticed by itself: an application that covers the whole screen and loads the graphics card, or a window started from a Steam, Epic or GOG folder, gets one quiet question - record it or not.
+Put a game on the list once, and every launch of it starts a recording session; quitting the game ends it. A new game is noticed by itself: an application that covers the whole screen and loads the graphics card, or a window started from a Steam, Epic or GOG folder, gets one quiet question - record it or not. The question remains available in the gallery and settings until you answer or the process exits; if several games are found together, they wait in a queue.
 
-### Records a window or monitor on demand
+### Replay buffer or long recording on demand
 
-Switch the gallery panel to manual mode, choose any window or monitor, and start either a replay buffer or a continuous recording. Manual recording has its own quality, buffer, sound and hotkey settings. Monitor capture uses Desktop Duplication on Windows 10, so it does not draw the yellow WGC border; game capture keeps its existing path unchanged.
+Switch the gallery panel to manual mode and choose any window or monitor. A replay buffer keeps the last minutes in memory and saves them only when asked; continuous recording writes a full, long session to disk. If the selected window closes, KebuzReplay stops the continuous recording and prepares the MP4 automatically. An interrupted recording can be recovered when its fragmented source and recovery manifest are still present.
+
+Manual recording has its own quality, buffer, sound and hotkey settings. A selected window tries the same borderless capture workaround as automatic game recording, with standard WGC as a fallback. Monitor capture uses Desktop Duplication on Windows 10, so it does not draw the yellow WGC border.
 
 ### One hotkey, one clip
 
@@ -48,7 +50,7 @@ H.264 on the graphics card through Media Foundation, captured with Windows.Graph
 
 ### Sound the way you hear it
 
-Either everything you hear, or only the applications you pick, the game among them. The microphone goes on top as its own source, with optional noise suppression. Every source has its own level up to 200% and a live meter, and a soft limiter keeps the mix from clipping.
+Either everything you hear, or only the applications you pick, the game among them. The microphone goes on top as its own source, with optional noise suppression. Every source has its own level up to 200% and a live meter, and a soft limiter keeps the mix from clipping. A ten-second sound check loops the same sample while you adjust the balance, lets you hear sources separately, and creates no video or gallery clip.
 
 ### A gallery sorted by game and session
 
@@ -59,7 +61,7 @@ Clips are grouped by game and by play session; a game can be folded away. Tags w
 - **Per-game profiles** - quality, buffer, sound, hotkey and capture mode of their own for one game.
 - **After the game exits** the recording goes on for a while with a black picture and sound, so the crash itself can still be saved; if the game comes back in that time, the recording just continues.
 - **Which window is recorded** - a toast with a frame of it every time recording starts, and the same frame in the gallery status line.
-- **No yellow frame on Windows 10** - an experimental capture mode that records through a hidden thumbnail window, so the capture border Windows 10 draws around the game does not appear.
+- **No yellow frame on Windows 10** - automatic game capture and manual window recording can use an experimental hidden thumbnail window, so the Windows capture border does not appear; standard WGC remains the fallback.
 - **It survives failures** - a supervisor restarts the recorder if it crashes, and capture comes back by itself after the graphics driver resets.
 
 ![Settings](docs/settings.png)
