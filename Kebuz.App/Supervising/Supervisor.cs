@@ -24,6 +24,7 @@ internal static class Supervisor
     private static PipeMessage? lastShot;
     private static PipeMessage? lastControl;
     private static PipeMessage? lastControlHotkey;
+    private static PipeMessage? lastCandidates;
     private static bool levelsWanted;
     private static Process? guiProcess;
     private static string? self;
@@ -268,12 +269,14 @@ internal static class Supervisor
         PipeMessage? state;
         PipeMessage? hotkey;
         PipeMessage? shot;
+        PipeMessage? candidates;
 
         lock (gate)
         {
             state = lastState;
             hotkey = lastHotkey;
             shot = lastShot;
+            candidates = lastCandidates;
         }
 
         if (state is not null)
@@ -290,10 +293,24 @@ internal static class Supervisor
         {
             toGui?.Send(hotkey);
         }
+
+        if (candidates is not null)
+        {
+            toGui?.Send(candidates);
+        }
     }
 
     private static void NoteRestart(string reason)
     {
+        PipeMessage empty;
+
+        lock (gate)
+        {
+            empty = PipeProtocol.Carry(PipeMessages.GameCandidates, Array.Empty<DetectedGame>());
+            lastCandidates = empty;
+        }
+
+        toGui?.Send(empty);
         toGui?.Send(PipeMessages.RecorderRestarted, new RestartInfo(reason));
     }
 
@@ -383,6 +400,15 @@ internal static class Supervisor
                 if (PipeProtocol.Unpack<HotkeyState>(message) is { Registered: false } refused)
                 {
                     Log.Error($"хоткей {refused.Combination} не зарегистрирован: {refused.Complaint}");
+                }
+
+                toGui?.Forward(message);
+                return;
+
+            case PipeMessages.GameCandidates:
+                lock (gate)
+                {
+                    lastCandidates = message;
                 }
 
                 toGui?.Forward(message);

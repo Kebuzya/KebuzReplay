@@ -61,6 +61,8 @@ public sealed class SettingsModel : INotifyPropertyChanged, ISection
     {
         lostBorderless = state.LostBorderless();
         Sample.SetRecording(state.Recording);
+        Sound.SetTestGameProcess(state.ProcessId is 0 ? null : state.ProcessId);
+        profile?.Sound.SetTestGameProcess(state.ProcessId is 0 ? null : state.ProcessId);
 
         var next = state.Recording && state.SettingsPending;
 
@@ -321,6 +323,7 @@ public sealed class SettingsModel : INotifyPropertyChanged, ISection
     public void OpenProfile(WatchedAppRow row)
     {
         profile = new ProfileModel(Games, row, Compose(), CloseProfile, Sample);
+        profile.Sound.SetTestGameProcess(Sound.TestGameProcessId);
         RaiseProfile();
     }
 

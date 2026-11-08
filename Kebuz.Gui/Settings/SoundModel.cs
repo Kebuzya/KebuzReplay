@@ -1,5 +1,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
+using System.Media;
 using System.Runtime.CompilerServices;
 using Kebuz.Gui.Localization;
 using Kebuz.Recorder.Localization;
@@ -88,6 +90,53 @@ public sealed class AudioAppRow : INotifyPropertyChanged
     }
 }
 
+public sealed class AudioTestSourceRow : INotifyPropertyChanged
+{
+    private readonly Action<AudioTestSourceRow> picked;
+    private bool solo;
+
+    public AudioTestSourceRow(AudioTestSource source, Action<AudioTestSourceRow> picked)
+    {
+        Source = source;
+        this.picked = picked;
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    public AudioTestSource Source { get; }
+
+    public string Id => Source.Id;
+
+    public string Title => Source.Title;
+
+    public string Text => Strings.Format("Settings.Sound.TestSolo", Title);
+
+    public bool Solo
+    {
+        get => solo;
+        set
+        {
+            if (solo == value)
+            {
+                return;
+            }
+
+            solo = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Solo)));
+        }
+    }
+
+    public void Pick()
+    {
+        picked(this);
+    }
+
+    public override string ToString()
+    {
+        return Title;
+    }
+}
+
 public sealed class SoundModel : INotifyPropertyChanged, ISection
 {
     private static readonly AudioDeviceRow SystemDefault = new(null, string.Empty);
@@ -114,6 +163,7 @@ public sealed class SoundModel : INotifyPropertyChanged, ISection
         gameSourceAvailable = available;
         Raise(nameof(GameSourceAvailable));
         Raise(nameof(GameSourceTitle));
+        SyncTest();
     }
     private bool microphone = AudioSettings.Default.Microphone;
     private bool noiseSuppression = AudioSettings.Default.NoiseSuppression;
@@ -121,6 +171,15 @@ public sealed class SoundModel : INotifyPropertyChanged, ISection
     private bool syncing;
     private bool perProcess = true;
     private bool previewing;
+    private AudioTestTake? testTake;
+    private CancellationTokenSource? testCancellation;
+    private SoundPlayer? testPlayer;
+    private MemoryStream? testWave;
+    private uint? testGameProcessId;
+    private bool testBusy;
+    private bool testPlaying;
+    private string? testTrouble;
+    private string? soloSource;
 
     public SoundModel(Action push)
     {
@@ -142,6 +201,8 @@ public sealed class SoundModel : INotifyPropertyChanged, ISection
 
     public ObservableCollection<AudioAppRow> Apps { get; } = [];
 
+    public ObservableCollection<AudioTestSourceRow> TestSources { get; } = [];
+
     public bool PerProcessSupported => perProcess;
 
     public bool PerProcessBlocked => !perProcess;
@@ -157,6 +218,38 @@ public sealed class SoundModel : INotifyPropertyChanged, ISection
     public LevelMeter MixMeter { get; } = new();
 
     public bool Previewing => previewing;
+
+    public bool TestBusy => testBusy;
+
+    public bool TestReady => testTake is not null;
+
+    public bool TestPlaying => testPlaying;
+
+    public uint? TestGameProcessId => testGameProcessId;
+
+    public bool CanCaptureTest => !testBusy;
+
+    public bool CanPlayTest => !testBusy && testTake is { HasSignal: true };
+
+    public bool HasTestTrouble => testTrouble is not null;
+
+    public string TestTroubleText => Strings.Render(testTrouble);
+
+    public string TestCaptureText => Strings.Get(testTake is null
+        ? "Settings.Sound.TestCapture"
+        : "Settings.Sound.TestRecapture");
+
+    public string TestPlayText => Strings.Get(testPlaying
+        ? "Settings.Sound.TestStop"
+        : "Settings.Sound.TestPlay");
+
+    public string TestStatusText => Strings.Get(testBusy
+        ? "Settings.Sound.TestRecording"
+        : testTake is null
+            ? "Settings.Sound.TestIdle"
+            : testTake.HasSignal
+                ? "Settings.Sound.TestReady"
+                : "Settings.Sound.TestSilent");
 
     public int MaxLevel => AudioSettings.MaxLevel;
 
@@ -350,6 +443,8 @@ public sealed class SoundModel : INotifyPropertyChanged, ISection
         {
             Examine();
         }
+
+        SyncTest();
     }
 
     public void Refresh()
@@ -394,6 +489,106 @@ public sealed class SoundModel : INotifyPropertyChanged, ISection
     public void Commit()
     {
         Send();
+    }
+
+    public async Task CaptureTest()
+    {
+        if (testBusy)
+        {
+            return;
+        }
+
+        StopTestPlayback();
+        testCancellation?.Cancel();
+        testCancellation?.Dispose();
+        testCancellation = new CancellationTokenSource();
+        testBusy = true;
+        testTrouble = null;
+        DropTestTake();
+        RaiseTest();
+
+        try
+        {
+            var settings = TestSettings();
+            var gameProcessId = testGameProcessId;
+            var take = await AudioMixTest.Capture(settings, gameProcessId, testCancellation.Token);
+
+            if (!take.Matches(TestSettings(), testGameProcessId))
+            {
+                testTrouble = Strings.Get("Settings.Sound.TestChanged");
+                return;
+            }
+
+            testTake = take;
+            TestSources.Clear();
+
+            foreach (var source in take.Sources)
+            {
+                TestSources.Add(new AudioTestSourceRow(source, ToggleSolo));
+            }
+
+            var unavailable = take.Sources.Where(source => !source.Live).Select(source => source.Title).ToList();
+
+            if (settings.Mode is SystemAudioMode.Apps && settings.GameSound && gameProcessId is null)
+            {
+                unavailable.Insert(0, Strings.Get("Settings.Sound.GameSound"));
+            }
+
+            if (unavailable.Count > 0)
+            {
+                testTrouble = Strings.Format("Settings.Sound.TestUnavailable", string.Join(", ", unavailable));
+            }
+
+            if (take.HasSignal)
+            {
+                StartTestPlayback();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception ex)
+        {
+            testTrouble = ex.Message;
+            Log.Error("проверка микса не удалась", ex);
+        }
+        finally
+        {
+            testBusy = false;
+            RaiseTest();
+        }
+    }
+
+    public void ToggleTestPlayback()
+    {
+        if (testPlaying)
+        {
+            StopTestPlayback();
+        }
+        else
+        {
+            StartTestPlayback();
+        }
+
+        RaiseTest();
+    }
+
+    public void DeactivateTest()
+    {
+        testCancellation?.Cancel();
+        StopTestPlayback();
+        RaiseTest();
+    }
+
+    public void SetTestGameProcess(uint? processId)
+    {
+        if (testGameProcessId == processId)
+        {
+            return;
+        }
+
+        testGameProcessId = processId;
+        SyncTest();
     }
 
     public void Meter(AudioLevels levels)
@@ -550,6 +745,109 @@ public sealed class SoundModel : INotifyPropertyChanged, ISection
         }
 
         push();
+        SyncTest();
+    }
+
+    private void SyncTest()
+    {
+        if (testTake is null)
+        {
+            return;
+        }
+
+        if (!testTake.Matches(TestSettings(), testGameProcessId))
+        {
+            StopTestPlayback();
+            DropTestTake();
+            testTrouble = null;
+            RaiseTest();
+            return;
+        }
+
+        if (testPlaying)
+        {
+            StartTestPlayback();
+            RaiseTest();
+        }
+    }
+
+    private void ToggleSolo(AudioTestSourceRow picked)
+    {
+        soloSource = picked.Solo ? null : picked.Id;
+
+        foreach (var source in TestSources)
+        {
+            source.Solo = source.Id == soloSource;
+        }
+
+        if (testPlaying)
+        {
+            StartTestPlayback();
+        }
+
+        RaiseTest();
+    }
+
+    private void StartTestPlayback()
+    {
+        if (testTake is not { HasSignal: true })
+        {
+            return;
+        }
+
+        StopTestPlayback();
+
+        try
+        {
+            testWave = testTake.Render(TestSettings(), soloSource);
+            testPlayer = new SoundPlayer(testWave);
+            testPlayer.Load();
+            testPlayer.PlayLooping();
+            testPlaying = true;
+        }
+        catch (Exception ex)
+        {
+            StopTestPlayback();
+            testTrouble = ex.Message;
+            Log.Error("проверка микса не воспроизводится", ex);
+        }
+    }
+
+    private void StopTestPlayback()
+    {
+        testPlayer?.Stop();
+        testPlayer?.Dispose();
+        testPlayer = null;
+        testWave?.Dispose();
+        testWave = null;
+        testPlaying = false;
+    }
+
+    private void DropTestTake()
+    {
+        testTake = null;
+        soloSource = null;
+        TestSources.Clear();
+    }
+
+    private AudioSettings TestSettings()
+    {
+        var settings = Current();
+        return gameSourceAvailable ? settings : settings with { GameSound = false };
+    }
+
+    private void RaiseTest()
+    {
+        Raise(nameof(TestBusy));
+        Raise(nameof(TestReady));
+        Raise(nameof(TestPlaying));
+        Raise(nameof(CanCaptureTest));
+        Raise(nameof(CanPlayTest));
+        Raise(nameof(HasTestTrouble));
+        Raise(nameof(TestTroubleText));
+        Raise(nameof(TestCaptureText));
+        Raise(nameof(TestPlayText));
+        Raise(nameof(TestStatusText));
     }
 
     private static AudioDeviceRow Pick(IReadOnlyList<AudioDeviceRow> rows, string? id)
@@ -577,6 +875,8 @@ public sealed class SoundModel : INotifyPropertyChanged, ISection
 
     private void Relocalize()
     {
+        DeactivateTest();
+        DropTestTake();
         Refresh();
         Raise(string.Empty);
     }

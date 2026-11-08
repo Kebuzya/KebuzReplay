@@ -25,7 +25,8 @@ public sealed record RecordingState(
     string? Hotkey = null,
     string? Capture = null,
     bool SettingsPending = false,
-    bool Continuous = false)
+    bool Continuous = false,
+    uint ProcessId = 0)
 {
     public const string BorderlessNote = "Capture.Borderless";
     public const string BorderlessFailedNote = "Capture.BorderlessFailed";
@@ -51,7 +52,7 @@ public sealed record AudioLevels(
     bool Limited,
     bool Preview);
 
-public sealed record DetectedGame(string Executable, string Path, string Title);
+public sealed record DetectedGame(string Executable, string Path, string Title, uint ProcessId = 0);
 
 public sealed record CaptureShot(
     string Game,

@@ -195,7 +195,7 @@ internal static class WatchHost
             Health,
             _ => exit.Set(),
             Session,
-            game => publish(PipeMessages.GameDetected, game),
+            games => publish(PipeMessages.GameCandidates, games),
             shot => Shown(shot),
             publish);
 

@@ -130,14 +130,37 @@ public partial class SettingsView : UserControl
 
     private void OnSectionPicked(object sender, RoutedEventArgs e)
     {
-        if (steering || sender is not RadioButton { Tag: FrameworkElement section })
+        if (steering || sender is not RadioButton { Tag: Border section })
         {
             return;
         }
 
+        Navigate(section, IsLoaded);
+    }
+
+    private void OnSectionClicked(object sender, RoutedEventArgs e)
+    {
+        if (steering || sender is not RadioButton { Tag: Border section })
+        {
+            return;
+        }
+
+        Navigate(section, true);
+    }
+
+    private void Navigate(Border section, bool pulse)
+    {
         steering = true;
         section.BringIntoView();
-        Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle, () => steering = false);
+        Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle, () =>
+        {
+            steering = false;
+
+            if (pulse)
+            {
+                SectionPulse.Show(section);
+            }
+        });
     }
 
     private void OnBodyScrolled(object sender, ScrollChangedEventArgs e)
@@ -152,7 +175,7 @@ public partial class SettingsView : UserControl
 
         foreach (var item in items)
         {
-            if (item.Tag is not FrameworkElement section)
+            if (item.Tag is not Border section)
             {
                 continue;
             }

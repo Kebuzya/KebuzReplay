@@ -87,15 +87,16 @@ public sealed class RecordingPanelModel : INotifyPropertyChanged
     public string ButtonText => Strings.Get(state.Active
         ? state.Continuous ? "Recording.StopSave" : "Recording.DisableBuffer"
         : IsManual ? IsContinuous ? "Recording.Start" : "Recording.EnableBuffer" : "Recording.ResumeAuto");
-    public string StatusText => localError ?? Strings.Render(state.Error) switch
-    {
-        { Length: > 0 } error => error,
-        _ => state.Stage is "starting" or "finalizing" ? Strings.Get("Recording.Stage." + state.Stage)
-            : state.Active && state.Continuous
+    public string StatusText => state.Stage is "starting" or "finalizing"
+        ? Strings.Get("Recording.Stage." + state.Stage)
+        : localError ?? Strings.Render(state.Error) switch
+        {
+            { Length: > 0 } error => error,
+            _ => state.Active && state.Continuous
                 ? Strings.Format("Recording.Progress", TimeSpan.FromSeconds(state.Seconds).ToString(@"hh\:mm\:ss"),
                     Kebuz.Recorder.Diagnostics.Sizes.Format(state.Bytes))
                 : Strings.Get(state.Active ? "Recording.BufferActive" : IsManual ? "Recording.WaitManual" : "Recording.WaitGame")
-    };
+        };
     public string MethodHelp => Strings.Get(IsContinuous ? "Recording.ContinuousHelp" : "Recording.BufferHelp");
     public string Estimate => IsContinuous
         ? Strings.Format("Recording.DiskEstimate", Kebuz.Recorder.Diagnostics.Sizes.Format(
@@ -126,7 +127,7 @@ public sealed class RecordingPanelModel : INotifyPropertyChanged
         Buffer.Adopt(manual.BufferSeconds, manual.MergeSeconds, manual.MergeMaxSeconds);
         Sound.Adopt(manual.Audio);
         ControlHotkey.Adopt(next.ControlHotkey ?? string.Empty);
-        Sound.SetGameSource(SelectedSource?.Source.Kind == CaptureSourceKind.Window);
+        SetSoundSource();
         loading = false;
         Refresh();
     }
@@ -148,7 +149,7 @@ public sealed class RecordingPanelModel : INotifyPropertyChanged
         sources = next.Sources.Select(source => new CaptureSourceRow(source)).ToArray();
         localError = Strings.Render(next.Error);
         if (string.IsNullOrEmpty(localError)) localError = null;
-        Sound.SetGameSource(SelectedSource?.Source.Kind == CaptureSourceKind.Window);
+        SetSoundSource();
         Refresh();
     }
 
@@ -208,9 +209,16 @@ public sealed class RecordingPanelModel : INotifyPropertyChanged
     private void Change(KebuzSettings next)
     {
         settings = next;
-        Sound.SetGameSource(SelectedSource?.Source.Kind == CaptureSourceKind.Window);
+        SetSoundSource();
         save(next);
         Refresh();
+    }
+
+    private void SetSoundSource()
+    {
+        var source = SelectedSource?.Source;
+        Sound.SetGameSource(source?.Kind == CaptureSourceKind.Window);
+        Sound.SetTestGameProcess(source?.ProcessId is > 0 ? source.ProcessId : null);
     }
     public void Refresh()
     {

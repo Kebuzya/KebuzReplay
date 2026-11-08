@@ -51,6 +51,23 @@
                                    DataContext="{Binding Meter}" />
             </Grid>
         </DataTemplate>
+
+        <DataTemplate x:Key="AudioTestSourceTemplate">
+            <Button Content="{Binding Text}"
+                    Margin="0,0,8,8"
+                    Click="OnTestSolo">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource BracketButton}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Solo}" Value="True">
+                                <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+                                <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+        </DataTemplate>
     </settings:SectionControl.Resources>
 
     <StackPanel>
@@ -242,5 +259,43 @@
                    FontSize="{StaticResource SmallSize}"
                    Foreground="{StaticResource MutedBrush}"
                    Visibility="{Binding Previewing, Converter={StaticResource ShowWhenTrue}}" />
+
+        <StackPanel Margin="0,22,0,0">
+            <StackPanel Orientation="Horizontal">
+                <Button Content="{Binding TestCaptureText}"
+                        IsEnabled="{Binding CanCaptureTest}"
+                        Click="OnCaptureTest"
+                        AutomationProperties.Name="{l:T Settings.Sound.TestCaptureName}"
+                        Style="{StaticResource AccentBracketButton}" />
+                <Button Content="{Binding TestPlayText}"
+                        IsEnabled="{Binding CanPlayTest}"
+                        Margin="10,0,0,0"
+                        Click="OnPlayTest"
+                        AutomationProperties.Name="{l:T Settings.Sound.TestPlayName}"
+                        Visibility="{Binding TestReady, Converter={StaticResource ShowWhenTrue}}"
+                        Style="{StaticResource BracketButton}" />
+            </StackPanel>
+            <TextBlock Text="{Binding TestStatusText}"
+                       Margin="24,8,0,0"
+                       TextWrapping="Wrap"
+                       FontSize="{StaticResource SmallSize}"
+                       Foreground="{StaticResource MutedBrush}" />
+            <ItemsControl ItemsSource="{Binding TestSources}"
+                          ItemTemplate="{StaticResource AudioTestSourceTemplate}"
+                          Margin="24,10,0,0"
+                          Visibility="{Binding TestReady, Converter={StaticResource ShowWhenTrue}}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+            <TextBlock Text="{Binding TestTroubleText}"
+                       Margin="24,4,0,0"
+                       TextWrapping="Wrap"
+                       FontSize="{StaticResource SmallSize}"
+                       Foreground="{StaticResource AccentBrush}"
+                       Visibility="{Binding HasTestTrouble, Converter={StaticResource ShowWhenTrue}}" />
+        </StackPanel>
     </StackPanel>
 </settings:SectionControl>

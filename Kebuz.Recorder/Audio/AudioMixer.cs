@@ -3,13 +3,15 @@ using Kebuz.Recorder.Diagnostics;
 namespace Kebuz.Recorder.Audio;
 
 internal delegate void AudioBlockHandler(ReadOnlySpan<short> samples, long frame);
+internal delegate void AudioSourceBlockHandler(int source, ReadOnlySpan<float> samples, long frame);
 
 internal sealed record AudioMixRequest(
     long Origin,
     IReadOnlyList<AudioSource> Sources,
     AudioBlockHandler OnBlock,
     Action<string> Trace,
-    bool Preview = false);
+    bool Preview = false,
+    AudioSourceBlockHandler? OnSource = null);
 
 internal sealed class AudioMixer : IDisposable
 {
@@ -166,6 +168,7 @@ internal sealed class AudioMixer : IDisposable
             }
 
             tally.Source(index, peak, energy);
+            request.OnSource?.Invoke(index, scratch, blocks * BlockFrames);
         }
 
         var blockPeak = 0f;

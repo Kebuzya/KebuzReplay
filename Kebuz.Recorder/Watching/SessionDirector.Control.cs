@@ -127,7 +127,7 @@ internal sealed partial class SessionDirector
         lock (gate) manualSession = started;
         state(new RecordingState(true, group, started.Folder, false, common.Manual?.BufferSeconds ?? common.BufferSeconds,
             common.Hotkey, Strings.Code(source.Kind == CaptureSourceKind.Monitor ? "Recording.Monitor" : "Recording.Window"),
-            false, started.Continuous));
+            false, started.Continuous, source.ProcessId));
     }
 
     private void RequestStop()
@@ -200,7 +200,11 @@ internal sealed partial class SessionDirector
             }
             catch (Exception ex)
             {
-                controlError = FailureCode(ex);
+                var expectedClosure = current.Continuous
+                    && ex is RecordingFailure { Key: "Recording.SourceClosed" };
+                controlError = expectedClosure ? null : FailureCode(ex);
+                if (expectedClosure)
+                    report("ручной источник закрылся, сохраняю непрерывную запись");
                 StopManual(false);
             }
         }

@@ -183,30 +183,37 @@
                 <RadioButton Content="{l:T Settings.Quality.Title}"
                              IsChecked="True"
                              Checked="OnSectionPicked"
+                             Click="OnSectionClicked"
                              Tag="{Binding ElementName=QualityBlock}"
                              Style="{StaticResource NavItem}" />
                 <RadioButton Content="{l:T Settings.Buffer.Title}"
                              Checked="OnSectionPicked"
+                             Click="OnSectionClicked"
                              Tag="{Binding ElementName=BufferBlock}"
                              Style="{StaticResource NavItem}" />
                 <RadioButton Content="{l:T Settings.Hotkey.Title}"
                              Checked="OnSectionPicked"
+                             Click="OnSectionClicked"
                              Tag="{Binding ElementName=HotkeyBlock}"
                              Style="{StaticResource NavItem}" />
                 <RadioButton Content="{l:T Settings.Games.Title}"
                              Checked="OnSectionPicked"
+                             Click="OnSectionClicked"
                              Tag="{Binding ElementName=GamesBlock}"
                              Style="{StaticResource NavItem}" />
                 <RadioButton Content="{l:T Settings.Sound.Title}"
                              Checked="OnSectionPicked"
+                             Click="OnSectionClicked"
                              Tag="{Binding ElementName=SoundBlock}"
                              Style="{StaticResource NavItem}" />
                 <RadioButton Content="{l:T Settings.Storage.Title}"
                              Checked="OnSectionPicked"
+                             Click="OnSectionClicked"
                              Tag="{Binding ElementName=StorageBlock}"
                              Style="{StaticResource NavItem}" />
                 <RadioButton Content="{l:T Settings.About.Title}"
                              Checked="OnSectionPicked"
+                             Click="OnSectionClicked"
                              Tag="{Binding ElementName=AboutBlock}"
                              Style="{StaticResource NavItem}" />
             </StackPanel>
@@ -220,7 +227,8 @@
                           Style="{StaticResource ThinScrollViewer}">
                 <StackPanel Margin="28,22,20,28" MaxWidth="760" HorizontalAlignment="Left">
 
-                    <StackPanel x:Name="QualityBlock">
+                    <Border x:Name="QualityBlock" Style="{StaticResource DestinationSection}">
+                    <StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="{l:T Settings.Quality.Heading}" Style="{StaticResource SectionHeader}" />
                             <settings:HelpButton Title="{l:T Settings.Quality.Title}"
@@ -230,10 +238,12 @@
                         </StackPanel>
                         <settings:QualitySection DataContext="{Binding Quality}" />
                     </StackPanel>
+                    </Border>
 
                     <Border Style="{StaticResource Divider}" Margin="0,26" />
 
-                    <StackPanel x:Name="BufferBlock">
+                    <Border x:Name="BufferBlock" Style="{StaticResource DestinationSection}">
+                    <StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="{l:T Settings.Buffer.Heading}" Style="{StaticResource SectionHeader}" />
                             <settings:HelpButton Title="{l:T Settings.Buffer.Title}"
@@ -243,10 +253,12 @@
                         </StackPanel>
                         <settings:BufferSection DataContext="{Binding Buffer}" />
                     </StackPanel>
+                    </Border>
 
                     <Border Style="{StaticResource Divider}" Margin="0,26" />
 
-                    <StackPanel x:Name="HotkeyBlock">
+                    <Border x:Name="HotkeyBlock" Style="{StaticResource DestinationSection}">
+                    <StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="{l:T Settings.Hotkey.Heading}" Style="{StaticResource SectionHeader}" />
                             <settings:HelpButton Title="{l:T Settings.Hotkey.Title}"
@@ -256,10 +268,12 @@
                         </StackPanel>
                         <settings:HotkeySection x:Name="HotkeyPart" DataContext="{Binding Hotkey}" />
                     </StackPanel>
+                    </Border>
 
                     <Border Style="{StaticResource Divider}" Margin="0,26" />
 
-                    <StackPanel x:Name="GamesBlock">
+                    <Border x:Name="GamesBlock" Style="{StaticResource DestinationSection}">
+                    <StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="{l:T Settings.Games.Heading}" Style="{StaticResource SectionHeader}" />
                             <settings:HelpButton Title="{l:T Settings.Games.Title}"
@@ -345,10 +359,12 @@
                                           ItemTemplate="{StaticResource IgnoredAppTemplate}" />
                         </StackPanel>
                     </StackPanel>
+                    </Border>
 
                     <Border Style="{StaticResource Divider}" Margin="0,26" />
 
-                    <StackPanel x:Name="SoundBlock">
+                    <Border x:Name="SoundBlock" Style="{StaticResource DestinationSection}">
+                    <StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="{l:T Settings.Sound.Heading}" Style="{StaticResource SectionHeader}" />
                             <settings:HelpButton Title="{l:T Settings.Sound.Title}"
@@ -358,10 +374,12 @@
                         </StackPanel>
                         <settings:SoundSection DataContext="{Binding Sound}" />
                     </StackPanel>
+                    </Border>
 
                     <Border Style="{StaticResource Divider}" Margin="0,26" />
 
-                    <StackPanel x:Name="StorageBlock">
+                    <Border x:Name="StorageBlock" Style="{StaticResource DestinationSection}">
+                    <StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="{l:T Settings.Storage.Heading}" Style="{StaticResource SectionHeader}" />
                             <settings:HelpButton Title="{l:T Settings.Storage.Title}"
@@ -371,10 +389,12 @@
                         </StackPanel>
                         <settings:StorageSection />
                     </StackPanel>
+                    </Border>
 
                     <Border Style="{StaticResource Divider}" Margin="0,26" />
 
-                    <StackPanel x:Name="AboutBlock">
+                    <Border x:Name="AboutBlock" Style="{StaticResource DestinationSection}">
+                    <StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="{l:T Settings.About.Heading}" Style="{StaticResource SectionHeader}" />
                             <settings:HelpButton Title="{l:T Settings.About.Title}"
@@ -411,6 +431,7 @@
                                   AutomationProperties.AutomationId="CheckUpdates"
                                   Style="{StaticResource OptionCheck}" />
                     </StackPanel>
+                    </Border>
 
                 </StackPanel>
             </ScrollViewer>

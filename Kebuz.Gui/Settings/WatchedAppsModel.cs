@@ -90,6 +90,8 @@ public sealed class FoundGameRow : INotifyPropertyChanged
 
     public string RejectName => Strings.Format("Settings.Games.RejectName", Title);
 
+    public string PromptText => Strings.Format("Gallery.Detected.Prompt", Title);
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private void Relocalize()
@@ -212,6 +214,12 @@ public sealed class WatchedAppsModel : INotifyPropertyChanged
 
     public bool HasFound => Found.Count > 0;
 
+    public FoundGameRow? CurrentFound => Found.FirstOrDefault();
+
+    public bool HasMoreFound => Found.Count > 1;
+
+    public string FoundMoreText => Strings.Format("Gallery.Detected.More", Math.Max(0, Found.Count - 1));
+
     public bool HasIgnored => Ignored.Count > 0;
 
     public bool IsPicking => picking;
@@ -233,6 +241,24 @@ public sealed class WatchedAppsModel : INotifyPropertyChanged
         Raise(nameof(HasFound));
 
         return added;
+    }
+
+    public void SyncCandidates(IReadOnlyList<DetectedGame> games)
+    {
+        foreach (var row in Found.ToList())
+        {
+            if (!games.Any(game => SameCandidate(row.Game, game)))
+            {
+                Settle(row);
+            }
+        }
+
+        foreach (var game in games)
+        {
+            Detect(game);
+        }
+
+        RaiseCandidates();
     }
 
     public void Accept(FoundGameRow row)
@@ -337,7 +363,7 @@ public sealed class WatchedAppsModel : INotifyPropertyChanged
     {
         if (Found.Remove(row))
         {
-            Raise(nameof(HasFound));
+            RaiseCandidates();
         }
 
         Settled?.Invoke(row);
@@ -475,6 +501,21 @@ public sealed class WatchedAppsModel : INotifyPropertyChanged
     private void Relocalize()
     {
         Raise(string.Empty);
+    }
+
+    private static bool SameCandidate(DetectedGame left, DetectedGame right)
+    {
+        return left.ProcessId != 0 && right.ProcessId != 0
+            ? left.ProcessId == right.ProcessId
+            : string.Equals(left.Path, right.Path, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void RaiseCandidates()
+    {
+        Raise(nameof(HasFound));
+        Raise(nameof(CurrentFound));
+        Raise(nameof(HasMoreFound));
+        Raise(nameof(FoundMoreText));
     }
 
     private void Complain(string text)

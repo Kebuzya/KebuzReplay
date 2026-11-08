@@ -34,6 +34,14 @@
         <Setter Property="SnapsToDevicePixels" Value="True" />
     </Style>
 
+    <Style x:Key="DestinationSection" TargetType="Border">
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="5" />
+        <Setter Property="Margin" Value="-6" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+    </Style>
+
     <Style x:Key="TagChip" TargetType="Border">
         <Setter Property="BorderBrush" Value="{StaticResource SecondDimBrush}" />
         <Setter Property="BorderThickness" Value="1" />

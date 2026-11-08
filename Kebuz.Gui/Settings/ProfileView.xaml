@@ -28,18 +28,22 @@
             <RadioButton Content="{l:T Settings.Quality.Title}"
                          IsChecked="True"
                          Checked="OnSectionPicked"
+                         Click="OnSectionClicked"
                          Tag="{Binding ElementName=ProfileQuality}"
                          Style="{StaticResource NavItem}" />
             <RadioButton Content="{l:T Settings.Buffer.Title}"
                          Checked="OnSectionPicked"
+                         Click="OnSectionClicked"
                          Tag="{Binding ElementName=ProfileBuffer}"
                          Style="{StaticResource NavItem}" />
             <RadioButton Content="{l:T Settings.Sound.Title}"
                          Checked="OnSectionPicked"
+                         Click="OnSectionClicked"
                          Tag="{Binding ElementName=ProfileSound}"
                          Style="{StaticResource NavItem}" />
             <RadioButton Content="{l:T Settings.Profile.Hotkey}"
                          Checked="OnSectionPicked"
+                         Click="OnSectionClicked"
                          Tag="{Binding ElementName=ProfileHotkey}"
                          Style="{StaticResource NavItem}" />
         </StackPanel>
@@ -72,7 +76,8 @@
 
                 <Border Style="{StaticResource Divider}" Margin="0,22" />
 
-                <StackPanel x:Name="ProfileQuality">
+                <Border x:Name="ProfileQuality" Style="{StaticResource DestinationSection}">
+                <StackPanel>
                     <TextBlock Text="{l:T Settings.Quality.Heading}" Style="{StaticResource SectionHeader}" />
                     <CheckBox Content="{l:T Settings.Profile.OwnQuality}"
                               IsChecked="{Binding OwnQuality}"
@@ -84,10 +89,12 @@
                                              IsEnabled="{Binding DataContext.OwnQuality, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                              Style="{StaticResource ProfileGroup}" />
                 </StackPanel>
+                </Border>
 
                 <Border Style="{StaticResource Divider}" Margin="0,26" />
 
-                <StackPanel x:Name="ProfileBuffer">
+                <Border x:Name="ProfileBuffer" Style="{StaticResource DestinationSection}">
+                <StackPanel>
                     <TextBlock Text="{l:T Settings.Buffer.Heading}" Style="{StaticResource SectionHeader}" />
                     <CheckBox Content="{l:T Settings.Profile.OwnBuffer}"
                               IsChecked="{Binding OwnBuffer}"
@@ -99,10 +106,12 @@
                                             IsEnabled="{Binding DataContext.OwnBuffer, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                             Style="{StaticResource ProfileGroup}" />
                 </StackPanel>
+                </Border>
 
                 <Border Style="{StaticResource Divider}" Margin="0,26" />
 
-                <StackPanel x:Name="ProfileSound">
+                <Border x:Name="ProfileSound" Style="{StaticResource DestinationSection}">
+                <StackPanel>
                     <TextBlock Text="{l:T Settings.Sound.Heading}" Style="{StaticResource SectionHeader}" />
                     <CheckBox Content="{l:T Settings.Profile.OwnSound}"
                               IsChecked="{Binding OwnSound}"
@@ -114,10 +123,12 @@
                                            IsEnabled="{Binding DataContext.OwnSound, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                            Style="{StaticResource ProfileGroup}" />
                 </StackPanel>
+                </Border>
 
                 <Border Style="{StaticResource Divider}" Margin="0,26" />
 
-                <StackPanel x:Name="ProfileHotkey">
+                <Border x:Name="ProfileHotkey" Style="{StaticResource DestinationSection}">
+                <StackPanel>
                     <TextBlock Text="{l:T Settings.Profile.HotkeyHeading}" Style="{StaticResource SectionHeader}" />
                     <CheckBox Content="{l:T Settings.Profile.OwnHotkey}"
                               IsChecked="{Binding OwnHotkey}"
@@ -130,6 +141,7 @@
                                             IsEnabled="{Binding DataContext.OwnHotkey, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                             Style="{StaticResource ProfileGroup}" />
                 </StackPanel>
+                </Border>
 
             </StackPanel>
         </ScrollViewer>

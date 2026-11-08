@@ -151,7 +151,7 @@ internal sealed class GameDetector : IDisposable
         }
 
         asked.Add(id);
-        detected(new DetectedGame(executable, path, WatchedApps.TitleOf(path)));
+        detected(new DetectedGame(executable, path, WatchedApps.TitleOf(path), id));
 
         var sample = new DetectSample(id, executable, coverage, folder, load, mean, steady, "игра");
         Rest();

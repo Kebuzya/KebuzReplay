@@ -4,6 +4,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using Kebuz.Gui.Player;
+using Kebuz.Gui.Settings;
 using Kebuz.Recorder.Localization;
 
 namespace Kebuz.Gui.Gallery;
@@ -11,6 +12,7 @@ namespace Kebuz.Gui.Gallery;
 public partial class GalleryView : UserControl
 {
     public void SetRecordingControl(RecordingPanelModel model) => RecordingControls.DataContext = model;
+    public void SetGameCandidates(WatchedAppsModel model) => GameCandidates.DataContext = model;
     private PlayerModel? player;
     private FullScreenWindow? theatre;
     private bool drawing;

@@ -140,7 +140,7 @@ internal sealed class ReplaySession : IDisposable
 
         try
         {
-            var (item, opened, capture) = Source(hwnd, settings.Capture, trace);
+            var (item, opened, capture) = OpenSource(hwnd, settings.Capture, trace);
             host = opened;
 
             var video = VideoEncoderSettings.Create(
@@ -208,7 +208,7 @@ internal sealed class ReplaySession : IDisposable
 
     public void Reattach(nint hwnd, uint nextProcessId, Settings.CaptureMode mode, Action<ShotImage>? shot)
     {
-        var (item, opened, capture) = Source(hwnd, mode, trace);
+        var (item, opened, capture) = OpenSource(hwnd, mode, trace);
 
         host?.Dispose();
         host = opened;
@@ -223,7 +223,7 @@ internal sealed class ReplaySession : IDisposable
         buffer.Audio?.Retarget(nextProcessId);
     }
 
-    private static (Windows.Graphics.Capture.GraphicsCaptureItem Item, ThumbnailHost? Host, string Capture) Source(
+    internal static (Windows.Graphics.Capture.GraphicsCaptureItem Item, ThumbnailHost? Host, string Capture) OpenSource(
         nint hwnd,
         Settings.CaptureMode mode,
         Action<string> trace)

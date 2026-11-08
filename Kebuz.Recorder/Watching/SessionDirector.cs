@@ -42,9 +42,10 @@ internal sealed partial class SessionDirector : IDisposable
     private readonly Action<SourceHealth> health;
     private readonly Action<Exception> fatal;
     private readonly Action<string?> rebind;
-    private readonly Action<DetectedGame> detected;
+    private readonly Action<IReadOnlyList<DetectedGame>> candidates;
     private readonly Action<CaptureShot> shown;
     private readonly GameDetector detector = new();
+    private readonly DetectedGameQueue detectedGames = new();
 
     private readonly List<long> recoveries = [];
     private readonly List<RunningProcess> processes = [];
@@ -111,7 +112,7 @@ internal sealed partial class SessionDirector : IDisposable
         Action<SourceHealth>? health = null,
         Action<Exception>? fatal = null,
         Action<string?>? rebind = null,
-        Action<DetectedGame>? detected = null,
+        Action<IReadOnlyList<DetectedGame>>? candidates = null,
         Action<CaptureShot>? shown = null,
         Action<string, object>? controlPublish = null)
     {
@@ -128,7 +129,7 @@ internal sealed partial class SessionDirector : IDisposable
         this.health = health ?? (_ => { });
         this.fatal = fatal ?? (_ => { });
         this.rebind = rebind ?? (_ => { });
-        this.detected = detected ?? (_ => { });
+        this.candidates = candidates ?? (_ => { });
         this.shown = shown ?? (_ => { });
         this.controlPublish = controlPublish ?? ((_, _) => { });
 
@@ -232,6 +233,11 @@ internal sealed partial class SessionDirector : IDisposable
         ReloadIgnored();
 
         ProcessScanner.Snapshot(processes);
+        var detectEnabled = common?.ManualControl != true && (common?.DetectGames ?? true);
+        if (detectedGames.Refresh(apps, ignored, Alive, detectEnabled))
+        {
+            PublishCandidates();
+        }
 
         HandleControl();
         if (common?.ManualControl == true || manualSession is not null)
@@ -517,7 +523,15 @@ internal sealed partial class SessionDirector : IDisposable
     private void Found(DetectedGame game)
     {
         report($"похоже на игру: {game.Title} ({game.Path}), спрашиваю");
-        detected(game);
+        if (detectedGames.Add(game))
+        {
+            PublishCandidates();
+        }
+    }
+
+    private void PublishCandidates()
+    {
+        candidates(detectedGames.Snapshot());
     }
 
     private void ReloadIgnored()
@@ -855,7 +869,8 @@ internal sealed partial class SessionDirector : IDisposable
             profile.Any,
             sessionVideo.BufferLength.TotalSeconds,
             Wanted(),
-            CaptureNote(asked, started)));
+            CaptureNote(asked, started),
+            ProcessId: targetId));
 
         if (recovering)
         {
@@ -899,7 +914,8 @@ internal sealed partial class SessionDirector : IDisposable
             lastState?.BufferSeconds ?? sessionVideo.BufferLength.TotalSeconds,
             Wanted(),
             CaptureNote(asked, current),
-            pending));
+            pending,
+            ProcessId: targetId));
     }
 
     private Action<ShotImage> Shot(nint hwnd, string game)

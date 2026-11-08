@@ -83,7 +83,7 @@ public sealed class AppLink : IDisposable
 
     public event Action<AudioLevels>? AudioLevels;
 
-    public event Action<DetectedGame>? GameDetected;
+    public event Action<IReadOnlyList<DetectedGame>>? GameCandidatesChanged;
 
     public event Action<CaptureShot>? CaptureShown;
 
@@ -288,7 +288,15 @@ public sealed class AppLink : IDisposable
             case PipeMessages.GameDetected:
                 if (PipeProtocol.Unpack<DetectedGame>(message) is { } game)
                 {
-                    GameDetected?.Invoke(game);
+                    GameCandidatesChanged?.Invoke([game]);
+                }
+
+                break;
+
+            case PipeMessages.GameCandidates:
+                if (PipeProtocol.Unpack<DetectedGame[]>(message) is { } games)
+                {
+                    GameCandidatesChanged?.Invoke(games);
                 }
 
                 break;

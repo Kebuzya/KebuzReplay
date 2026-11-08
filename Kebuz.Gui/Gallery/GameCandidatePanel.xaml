@@ -1,0 +1,44 @@
+<UserControl x:Class="Kebuz.Gui.Gallery.GameCandidatePanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:Kebuz.Gui.Localization"
+             AutomationProperties.AutomationId="DetectedGamePrompt">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="ShowWhenTrue" />
+    </UserControl.Resources>
+    <Border Background="{StaticResource PanelBrush}"
+            BorderBrush="{StaticResource EdgeBrush}"
+            BorderThickness="0,1,0,0"
+            Padding="16,7"
+            Visibility="{Binding HasFound, Converter={StaticResource ShowWhenTrue}}">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                <TextBlock Text="{Binding CurrentFound.PromptText}" />
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding CurrentFound.Executable}" Style="{StaticResource SmallMutedText}" />
+                    <TextBlock Text="{Binding FoundMoreText}"
+                               Margin="12,0,0,0"
+                               Style="{StaticResource SmallMutedText}"
+                               Visibility="{Binding HasMoreFound, Converter={StaticResource ShowWhenTrue}}" />
+                </StackPanel>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Content="{l:T Settings.Games.NotGame}"
+                        Margin="0,0,10,0"
+                        Style="{StaticResource SmallBracketButton}"
+                        AutomationProperties.AutomationId="DetectedGameReject"
+                        AutomationProperties.Name="{Binding CurrentFound.RejectName}"
+                        Click="OnReject" />
+                <Button Content="{l:T Settings.Games.Record}"
+                        Style="{StaticResource SmallAccentBracketButton}"
+                        AutomationProperties.AutomationId="DetectedGameAccept"
+                        AutomationProperties.Name="{Binding CurrentFound.RecordName}"
+                        Click="OnAccept" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

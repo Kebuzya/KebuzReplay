@@ -551,6 +551,7 @@
         </Grid>
 
         <StackPanel Grid.Row="2">
+        <gallery:GameCandidatePanel x:Name="GameCandidates" />
         <gallery:RecordingPanel x:Name="RecordingControls" />
         <Border
                 Height="27"

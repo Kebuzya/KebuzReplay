@@ -21,6 +21,7 @@ internal sealed class ManualSession : IDisposable
     private bool disposed;
     private readonly GraphicsCaptureItem? item;
     private readonly DesktopCapture? desktop;
+    private readonly ThumbnailHost? host;
     private bool sourceClosed;
 
     public CaptureSource Source { get; }
@@ -53,7 +54,9 @@ internal sealed class ManualSession : IDisposable
         else
         {
             device = GraphicsDevice.Create();
-            item = CaptureTarget.Window((nint)source.Handle);
+            var opened = ReplaySession.OpenSource((nint)source.Handle, CaptureModeFor(source.Kind), trace);
+            item = opened.Item;
+            host = opened.Host;
         }
         try
         {
@@ -87,7 +90,7 @@ internal sealed class ManualSession : IDisposable
                         source.Title, shot.SourceWidth, shot.SourceHeight, shot.Png, DateTime.UtcNow)),
                     continuous is null ? null : TimeSpan.FromSeconds(20)))
                 : new CaptureRunner(device, item!, encoder, new CaptureRequest(video.SourceWidth,
-                video.SourceHeight, video.FrameRate, trace, false, shot => shown(new CaptureShot(group,
+                video.SourceHeight, video.FrameRate, trace, host is not null, shot => shown(new CaptureShot(group,
                     source.Title, shot.SourceWidth, shot.SourceHeight, shot.Png, DateTime.UtcNow)),
                 continuous is null ? null : TimeSpan.FromSeconds(20)));
             runner.Start();
@@ -96,6 +99,7 @@ internal sealed class ManualSession : IDisposable
         {
             if (item is not null) item.Closed -= OnSourceClosed;
             desktop?.Dispose();
+            host?.Dispose();
             scheduler?.Dispose();
             continuous?.Dispose();
             buffer?.Dispose();
@@ -106,6 +110,8 @@ internal sealed class ManualSession : IDisposable
     }
 
     public void Mark() => scheduler?.Trigger();
+    internal static CaptureMode CaptureModeFor(CaptureSourceKind kind) =>
+        kind is CaptureSourceKind.Window ? CaptureMode.Borderless : CaptureMode.Standard;
     private void OnSourceClosed(GraphicsCaptureItem sender, object args) => Volatile.Write(ref sourceClosed, true);
 
     public ClipInfo? Stop(bool saveBuffer)
@@ -139,6 +145,7 @@ internal sealed class ManualSession : IDisposable
             scheduler?.Dispose();
             continuous?.Dispose();
             buffer?.Dispose();
+            host?.Dispose();
             device.Dispose();
             CleanEmptyFolder();
         }

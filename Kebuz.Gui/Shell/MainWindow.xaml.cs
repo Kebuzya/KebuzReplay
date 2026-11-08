@@ -30,6 +30,7 @@ public partial class MainWindow : Window
     private readonly RecordingPanelModel recording;
     private readonly UpdateModel updates = new();
     private readonly DispatcherTimer updateTimer = new() { Interval = UpdateInterval };
+    private readonly HashSet<FoundGameRow> questionedGames = [];
 
     private TrayIcon? tray;
     private ToastWindow? toast;
@@ -54,6 +55,7 @@ public partial class MainWindow : Window
         recording = new RecordingPanelModel(settings.UpdateRecording,
             command => link?.Send(PipeMessages.RecordingCommand, command));
         GalleryScreen.SetRecordingControl(recording);
+        GalleryScreen.SetGameCandidates(settings.Games);
         recording.PropertyChanged += (_, _) => WatchLevels();
 
         SettingsScreen.DataContext = settings;
@@ -100,7 +102,7 @@ public partial class MainWindow : Window
         link.BufferMemoryUsage += bytes => Dispatcher.Invoke(() => gallery.SetMemory(bytes));
         link.AudioSourceChanged += health => Dispatcher.Invoke(() => OnAudioSourceChanged(health));
         link.AudioLevels += levels => Dispatcher.BeginInvoke(() => OnAudioLevels(levels));
-        link.GameDetected += game => Dispatcher.Invoke(() => OnGameDetected(game));
+        link.GameCandidatesChanged += games => Dispatcher.Invoke(() => OnGameCandidates(games));
         link.CaptureShown += shot => Dispatcher.Invoke(() => OnCaptureShown(shot));
         link.ShowRequested += () => Dispatcher.Invoke(ShowFromTray);
         SettingsScreen.IsVisibleChanged += (_, _) => WatchLevels();
@@ -277,10 +279,17 @@ public partial class MainWindow : Window
         GalleryTab.IsChecked = true;
     }
 
-    private void OnGameDetected(DetectedGame game)
+    private void OnGameCandidates(IReadOnlyList<DetectedGame> games)
     {
-        if (settings.Games.Detect(game) is not { } row)
+        settings.Games.SyncCandidates(games);
+        ShowGameQuestion();
+    }
+
+    private void ShowGameQuestion()
+    {
+        if (settings.Games.CurrentFound is not { } row)
         {
+            question?.Dismiss();
             return;
         }
 
@@ -290,7 +299,10 @@ public partial class MainWindow : Window
             question.Answered += OnGameAnswered;
         }
 
-        question.Ask(row);
+        if (question.Asking != row && questionedGames.Add(row))
+        {
+            question.Ask(row);
+        }
     }
 
     private void OnGameAnswered(FoundGameRow row, bool record)
@@ -311,6 +323,8 @@ public partial class MainWindow : Window
         {
             question.Dismiss();
         }
+
+        ShowGameQuestion();
     }
 
     private void OnToastPicked(ClipItem clip)

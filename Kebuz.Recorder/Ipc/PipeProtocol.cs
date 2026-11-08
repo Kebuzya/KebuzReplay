@@ -27,6 +27,7 @@ public static class PipeMessages
     public const string AudioLevels = "AudioLevels";
     public const string ApplySettingsNow = "ApplySettingsNow";
     public const string GameDetected = "GameDetected";
+    public const string GameCandidates = "GameCandidates";
     public const string CaptureShown = "CaptureShown";
     public const string ShowWindow = "ShowWindow";
 }
