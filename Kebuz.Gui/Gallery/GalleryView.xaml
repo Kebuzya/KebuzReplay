@@ -559,55 +559,74 @@
                 BorderBrush="{StaticResource EdgeBrush}"
                 BorderThickness="0,1,0,0">
             <Grid Margin="16,0">
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <Ellipse Style="{StaticResource RecordingDot}" VerticalAlignment="Center" />
-                    <Border Height="19"
-                            Margin="0,0,8,0"
-                            VerticalAlignment="Center"
-                            BorderBrush="{StaticResource EdgeBrush}"
-                            BorderThickness="1"
-                            Visibility="{Binding HasRecordingCard, Converter={StaticResource ShowWhenTrue}}"
-                            AutomationProperties.AutomationId="RecordingShot"
-                            AutomationProperties.Name="{Binding RecordingCard.Window}">
-                        <Border.ToolTip>
-                            <StackPanel>
-                                <Image Source="{Binding RecordingCard.Shot}"
-                                       Width="256"
-                                       RenderOptions.BitmapScalingMode="HighQuality" />
-                                <TextBlock Margin="0,6,0,0" Text="{Binding RecordingCard.Window}" />
-                            </StackPanel>
-                        </Border.ToolTip>
-                        <Image Source="{Binding RecordingCard.Shot}"
-                               Stretch="Uniform"
-                               RenderOptions.BitmapScalingMode="HighQuality" />
-                    </Border>
-                    <TextBlock Text="{Binding RecordingText}"
-                               VerticalAlignment="Center"
-                               AutomationProperties.AutomationId="RecordingLine"
-                               Style="{StaticResource SmallMutedText}" />
-                    <Button Content="{l:T Gallery.SaveReplay}"
-                            Margin="14,0,0,0"
-                            Padding="9,1"
-                            VerticalAlignment="Center"
-                            FontSize="{StaticResource SmallSize}"
-                            IsEnabled="{Binding CanMark}"
-                            Click="OnMarkClip"
-                            AutomationProperties.Name="{l:T Gallery.SaveReplay}"
-                            Style="{StaticResource BracketButton}" />
-                    <Button Content="{Binding ApplyText}"
-                            Margin="8,0,0,0"
-                            Padding="9,1"
-                            VerticalAlignment="Center"
-                            FontSize="{StaticResource SmallSize}"
-                            Visibility="{Binding CanApplyNow, Converter={StaticResource ShowWhenTrue}}"
-                            Click="OnApplySettings"
-                            ToolTip="{Binding ApplyHint}"
-                            AutomationProperties.Name="{Binding ApplyText}"
-                            Style="{StaticResource BracketButton}" />
-                </StackPanel>
-                <TextBlock Text="{Binding StorageText}"
-                           HorizontalAlignment="Right"
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Ellipse Grid.Column="0"
+                         Style="{StaticResource RecordingDot}"
+                         VerticalAlignment="Center" />
+                <Border Grid.Column="1"
+                        Height="19"
+                        Margin="0,0,8,0"
+                        VerticalAlignment="Center"
+                        BorderBrush="{StaticResource EdgeBrush}"
+                        BorderThickness="1"
+                        Visibility="{Binding HasRecordingCard, Converter={StaticResource ShowWhenTrue}}"
+                        AutomationProperties.AutomationId="RecordingShot"
+                        AutomationProperties.Name="{Binding RecordingCard.Window}">
+                    <Border.ToolTip>
+                        <StackPanel>
+                            <Image Source="{Binding RecordingCard.Shot}"
+                                   Width="256"
+                                   RenderOptions.BitmapScalingMode="HighQuality" />
+                            <TextBlock Margin="0,6,0,0" Text="{Binding RecordingCard.Window}" />
+                        </StackPanel>
+                    </Border.ToolTip>
+                    <Image Source="{Binding RecordingCard.Shot}"
+                           Stretch="Uniform"
+                           RenderOptions.BitmapScalingMode="HighQuality" />
+                </Border>
+                <TextBlock Grid.Column="2"
+                           Text="{Binding RecordingText}"
+                           TextTrimming="CharacterEllipsis"
                            VerticalAlignment="Center"
+                           ToolTip="{Binding RecordingText}"
+                           AutomationProperties.AutomationId="RecordingLine"
+                           Style="{StaticResource SmallMutedText}" />
+                <Button Grid.Column="3"
+                        Content="{l:T Gallery.SaveReplay}"
+                        Margin="14,0,0,0"
+                        Padding="9,1"
+                        VerticalAlignment="Center"
+                        FontSize="{StaticResource SmallSize}"
+                        IsEnabled="{Binding CanMark}"
+                        Click="OnMarkClip"
+                        AutomationProperties.AutomationId="SaveReplayButton"
+                        AutomationProperties.Name="{l:T Gallery.SaveReplay}"
+                        Style="{StaticResource BracketButton}" />
+                <Button Grid.Column="4"
+                        Content="{Binding ApplyText}"
+                        Margin="8,0,0,0"
+                        Padding="9,1"
+                        VerticalAlignment="Center"
+                        FontSize="{StaticResource SmallSize}"
+                        Visibility="{Binding CanApplyNow, Converter={StaticResource ShowWhenTrue}}"
+                        Click="OnApplySettings"
+                        ToolTip="{Binding ApplyHint}"
+                        AutomationProperties.AutomationId="ApplyRecordingSettings"
+                        AutomationProperties.Name="{Binding ApplyText}"
+                        Style="{StaticResource BracketButton}" />
+                <TextBlock Text="{Binding StorageText}"
+                           Grid.Column="5"
+                           Margin="12,0,0,0"
+                           VerticalAlignment="Center"
+                           AutomationProperties.AutomationId="StorageLine"
                            Style="{StaticResource SmallMutedText}" />
             </Grid>
         </Border>
