@@ -1,0 +1,11 @@
+KebuzReplay source code is licensed under the MIT License in LICENSE.
+The following notices apply to third-party components in this distribution.
+
+Microsoft.Windows.SDK.NET.dll and WinRT.Runtime.dll are distributed from
+Microsoft.Windows.SDK.NET.Ref to enable calls to Windows Runtime APIs.
+See licenses/Microsoft-Windows-SDK.rtf for the Windows SDK terms and
+licenses/CsWinRT-MIT.txt for the C#/WinRT copyright and MIT license.
+https://learn.microsoft.com/legal/windows-sdk/redist#microsoftwindowssdknetref
+
+KebuzReplay includes interoperability code generated with Microsoft.Windows.CsWin32.
+See licenses/CsWin32-MIT.txt for the Microsoft copyright and MIT license.

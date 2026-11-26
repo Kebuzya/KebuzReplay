@@ -9,7 +9,18 @@ internal static class Program
     [STAThread]
     private static int Main(string[] args)
     {
-        if (args.Contains("--recorder", StringComparer.OrdinalIgnoreCase))
+        var recorder = args.Contains("--recorder", StringComparer.OrdinalIgnoreCase);
+        if (!recorder && args.Contains("--exit", StringComparer.OrdinalIgnoreCase))
+        {
+            return Supervisor.RequestExit();
+        }
+
+        if (!DistributionLicenses.AcceptBeforeRunning())
+        {
+            return 1;
+        }
+
+        if (recorder)
         {
             if (!args.Contains("--supervised", StringComparer.OrdinalIgnoreCase))
             {
@@ -17,11 +28,6 @@ internal static class Program
             }
 
             return RecorderHost.Run(args);
-        }
-
-        if (args.Contains("--exit", StringComparer.OrdinalIgnoreCase))
-        {
-            return Supervisor.RequestExit();
         }
 
         if (args.Contains("--gui", StringComparer.OrdinalIgnoreCase))

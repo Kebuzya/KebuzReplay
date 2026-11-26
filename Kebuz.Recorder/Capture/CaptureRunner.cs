@@ -318,7 +318,7 @@ internal sealed class CaptureRunner : IDisposable
             }
             else
             {
-                fit ??= new FrameFit(device, request.Width, request.Height);
+                fit ??= new FrameFit(device, request.Width, request.Height, request.FrameRate);
                 fit.Draw(texture, source, width, height);
             }
         }

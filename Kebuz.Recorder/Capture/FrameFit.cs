@@ -13,6 +13,7 @@ internal sealed class FrameFit : IDisposable
     private readonly ID3D11VideoContext context;
     private readonly uint width;
     private readonly uint height;
+    private readonly uint frameRate;
     private readonly Dictionary<ID3D11Texture2D, ID3D11VideoProcessorOutputView> outputs = new(ReferenceEqualityComparer.Instance);
 
     private ID3D11VideoProcessorEnumerator? enumerator;
@@ -23,11 +24,12 @@ internal sealed class FrameFit : IDisposable
     private uint inputHeight;
     private bool disposed;
 
-    public FrameFit(GraphicsDevice device, uint width, uint height)
+    public FrameFit(GraphicsDevice device, uint width, uint height, uint frameRate)
     {
         this.device = device;
         this.width = width;
         this.height = height;
+        this.frameRate = frameRate;
         video = (ID3D11VideoDevice)device.Device;
         context = (ID3D11VideoContext)device.Context;
     }
@@ -81,8 +83,8 @@ internal sealed class FrameFit : IDisposable
             InputHeight = sourceHeight,
             OutputWidth = width,
             OutputHeight = height,
-            InputFrameRate = new DXGI_RATIONAL { Numerator = 60, Denominator = 1 },
-            OutputFrameRate = new DXGI_RATIONAL { Numerator = 60, Denominator = 1 },
+            InputFrameRate = new DXGI_RATIONAL { Numerator = frameRate, Denominator = 1 },
+            OutputFrameRate = new DXGI_RATIONAL { Numerator = frameRate, Denominator = 1 },
             Usage = D3D11_VIDEO_USAGE.D3D11_VIDEO_USAGE_OPTIMAL_SPEED
         };
 

@@ -1,4 +1,11 @@
 {
+  "License.Title": "KebuzReplay - license terms",
+  "License.Instruction": "Review the Microsoft license terms for the components distributed with this copy. Accept them to start KebuzReplay.",
+  "License.Accept": "I accept",
+  "License.Decline": "Decline and exit",
+  "License.WindowsSdk": "Windows SDK",
+  "License.DotNet": ".NET Library",
+  "License.Unavailable": "KebuzReplay could not load the license terms or save your acceptance. Extract the complete archive to a folder you can write to and try again.",
   "Recording.Auto": "Automatic",
   "Recording.Manual": "Manual",
   "Recording.Buffer": "Replay buffer",

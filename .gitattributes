@@ -1,0 +1,5 @@
+/build/licenses/CsWin32-MIT.txt -text
+/build/licenses/CsWinRT-MIT.txt -text whitespace=cr-at-eol
+/build/licenses/Inno-Setup.txt -text whitespace=cr-at-eol
+/build/licenses/Microsoft-DotNET-Library.txt -text -whitespace
+/build/licenses/Microsoft-Windows-SDK.rtf -text -diff

@@ -17,6 +17,7 @@ AppName=KebuzReplay
 AppVersion={#AppVersion}
 AppVerName=KebuzReplay {#AppVersion}
 AppPublisher=Kebuzya
+AppCopyright=Copyright (c) 2026 Kebuzya
 AppPublisherURL=https://github.com/Kebuzya/KebuzReplay
 AppSupportURL=https://github.com/Kebuzya/KebuzReplay/issues
 AppUpdatesURL=https://github.com/Kebuzya/KebuzReplay/releases
@@ -35,6 +36,7 @@ UninstallDisplayName=KebuzReplay
 Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern
+LicenseFile={#SourceDir}\licenses\Microsoft-Windows-SDK.rtf
 CloseApplications=no
 
 [Languages]
@@ -95,6 +97,13 @@ var
 begin
   if FileExists(Path) then
     Exec(Path, '--exit', '', SW_HIDE, ewWaitUntilTerminated, Code);
+end;
+
+function InitializeSetup: Boolean;
+begin
+  Result := not WizardSilent or (ExpandConstant('{param:ACCEPTLICENSE|0}') = '1');
+  if not Result then
+    Log('Review the Windows SDK license and pass /ACCEPTLICENSE=1 to accept it for silent installation.');
 end;
 
 procedure InitializeWizard;

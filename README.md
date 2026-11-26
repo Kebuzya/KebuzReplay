@@ -115,4 +115,7 @@ The processes talk over named pipes. Everything native (Win32, COM, WinRT) goes 
 
 ## License
 
-MIT, see [LICENSE](LICENSE).
+The KebuzReplay source code is licensed under the MIT License. See [LICENSE](LICENSE).
+Release packages include `THIRD-PARTY-NOTICES.txt` and the licenses for the components they distribute.
+The installer requests acceptance of the Windows SDK terms. The ZIP builds show their applicable Microsoft terms on the first launch and when those terms change.
+For unattended installation, review the [Windows SDK terms](build/licenses/Microsoft-Windows-SDK.rtf) and pass `/ACCEPTLICENSE=1` with `/SILENT` or `/VERYSILENT` to accept them.

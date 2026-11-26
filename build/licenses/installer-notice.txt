@@ -1,0 +1,6 @@
+
+The installer was built with Inno Setup, copyright Jordan Russell and Martijn Laan.
+See licenses/Inno-Setup.txt for its license.
+https://jrsoftware.org/
+
+When needed, the installer downloads the .NET Desktop Runtime from Microsoft.

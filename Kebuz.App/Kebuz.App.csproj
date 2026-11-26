@@ -20,4 +20,8 @@
     <ProjectReference Include="..\Kebuz.Gui\Kebuz.Gui.csproj" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(ArchiveDistribution)' != ''">
+    <AssemblyMetadata Include="ArchiveDistribution" Value="$(ArchiveDistribution)" />
+  </ItemGroup>
+
 </Project>

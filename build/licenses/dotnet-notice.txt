@@ -1,0 +1,6 @@
+
+This distribution includes the Microsoft .NET runtime and Windows Desktop runtime.
+See licenses/Microsoft-DotNET-Library.txt for the terms of the binaries it covers,
+licenses/Microsoft-Windows-SDK.rtf for the Windows SDK terms for D3DCompiler_47_cor3.dll,
+and licenses/dotnet/ for the licenses and notices from the bundled runtime packs.
+https://github.com/dotnet/core/blob/main/license-information-windows.md

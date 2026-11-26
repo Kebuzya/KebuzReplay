@@ -35,7 +35,7 @@ public static class QualityPresets
     public const uint MaxHeight = 1440;
     public const uint HeightStep = 90;
     public const uint MinFrameRate = 24;
-    public const uint MaxFrameRate = 60;
+    public const uint MaxFrameRate = 120;
     public const uint MinBitrateKbps = 1000;
     public const uint MaxBitrateKbps = 30000;
     public const uint PeakRatio = 2;

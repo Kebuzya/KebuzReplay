@@ -115,4 +115,7 @@ dotnet run --project Kebuz.App
 
 ## Лицензия
 
-MIT, см. [LICENSE](LICENSE).
+Исходный код KebuzReplay распространяется по лицензии MIT. См. [LICENSE](LICENSE).
+В пакеты релиза входят `THIRD-PARTY-NOTICES.txt` и лицензии компонентов, которые в них поставляются.
+Установщик предлагает принять условия Windows SDK. Сборки из ZIP показывают применимые условия Microsoft при первом запуске и при их изменении.
+Для автоматической установки ознакомьтесь с [условиями Windows SDK](build/licenses/Microsoft-Windows-SDK.rtf) и передайте `/ACCEPTLICENSE=1` вместе с `/SILENT` или `/VERYSILENT`, чтобы принять их.

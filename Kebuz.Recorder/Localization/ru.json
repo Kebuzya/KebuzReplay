@@ -1,4 +1,11 @@
 {
+  "License.Title": "KebuzReplay - условия лицензии",
+  "License.Instruction": "Ознакомьтесь с условиями Microsoft для компонентов этой сборки. Чтобы запустить KebuzReplay, примите эти условия.",
+  "License.Accept": "Принимаю",
+  "License.Decline": "Отклонить и выйти",
+  "License.WindowsSdk": "Windows SDK",
+  "License.DotNet": ".NET Library",
+  "License.Unavailable": "Не удалось загрузить условия лицензии или сохранить ваше согласие. Распакуйте весь архив в папку с правом записи и попробуйте снова.",
   "Recording.Auto": "Автоматически",
   "Recording.Manual": "Вручную",
   "Recording.Buffer": "Буфер повторов",
